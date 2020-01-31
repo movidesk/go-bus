@@ -1,0 +1,20 @@
+version: "3"
+
+services:
+    mq:
+        build:
+            context: .
+            dockerfile: Dockerfile.mq
+        ports:
+            - 15672:15672
+            - 5672:5672
+        environment:
+            RABBITMQ_DEFAULT_USER: "guest"
+            RABBITMQ_DEFAULT_PASS: "guest"
+            RABBITMQ_DEFAULT_VHOST: "/"
+        networks:
+            - ingress
+
+networks: 
+    ingress:
+        driver: bridge
