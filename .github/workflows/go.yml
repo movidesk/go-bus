@@ -28,6 +28,12 @@ jobs:
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
 
+    - name: ufw
+      run: ufw status
+      run: ufw disable
+      run: ufw status
+
+
     - name: Deps
       run: go get -v -t -d ./...
 
