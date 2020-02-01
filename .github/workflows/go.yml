@@ -29,13 +29,13 @@ jobs:
       uses: actions/checkout@v2
 
     - name: ufw status
-      run: ufw status
+      run: sudo ufw status
 
     - name: ufw disable
-      run: ufw disable
+      run: sudo ufw disable
 
     - name: ufw status again
-      run: ufw status
+      run: sudo ufw status
 
 
     - name: Deps
