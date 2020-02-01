@@ -28,15 +28,8 @@ jobs:
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
 
-    - name: ufw status
-      run: sudo ufw status
-
-    - name: ufw disable
-      run: sudo ufw disable
-
-    - name: ufw status again
-      run: sudo ufw status
-
+    - name: net stat
+      run: netstat -an | grep "LISTEN "
 
     - name: Deps
       run: go get -v -t -d ./...
@@ -45,4 +38,4 @@ jobs:
       run: go test -v -run Unit ./...
       
     - name: Integration
-      run: sudo go test -v -run Integration ./...
+      run: go test -v -run Integration ./...
