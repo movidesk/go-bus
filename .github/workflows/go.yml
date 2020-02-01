@@ -28,9 +28,13 @@ jobs:
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
 
-    - name: ufw
+    - name: ufw status
       run: ufw status
+
+    - name: ufw disable
       run: ufw disable
+
+    - name: ufw status again
       run: ufw status
 
 
