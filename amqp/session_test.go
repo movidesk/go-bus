@@ -41,10 +41,10 @@ func (s *SessionIntegrationSuite) TestNewSessionWithProxy() {
 	assert := assert.New(s.T())
 	done := make(chan struct{})
 	var wg sync.WaitGroup
-	go proxy(":25672", "localhost:5672", &wg)(done)
+	go proxy(":35672", "localhost:5672", &wg)(done)
 
 	sess, err := NewSession(
-		SetDsn("amqp://guest:guest@localhost:25672"),
+		SetDsn("amqp://guest:guest@localhost:35672"),
 	)
 
 	assert.NoError(err)
