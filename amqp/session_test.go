@@ -41,10 +41,10 @@ func (s *SessionIntegrationSuite) TestNewSessionWithProxy() {
 	assert := assert.New(s.T())
 	done := make(chan struct{})
 	var wg sync.WaitGroup
-	go proxy(":2000", "localhost:5672", &wg)(done)
+	go proxy(":35672", "localhost:5672", &wg)(done)
 
 	sess, err := NewSession(
-		SetDsn("amqp://guest:guest@localhost:2000"),
+		SetDsn("amqp://guest:guest@localhost:35672"),
 	)
 
 	assert.NoError(err)
@@ -63,10 +63,10 @@ func (s *SessionIntegrationSuite) TestReconnectionOnNetworkFailure() {
 	assert := assert.New(s.T())
 	done := make(chan struct{})
 	var wg sync.WaitGroup
-	go proxy(":2001", "localhost:5672", &wg)(done)
+	go proxy(":45672", "localhost:5672", &wg)(done)
 
 	sess, err := NewSession(
-		SetDsn("amqp://guest:guest@localhost:2001"),
+		SetDsn("amqp://guest:guest@localhost:45672"),
 	)
 
 	assert.NoError(err)
@@ -80,7 +80,7 @@ func (s *SessionIntegrationSuite) TestReconnectionOnNetworkFailure() {
 
 	assert.False(sess.IsConnected())
 
-	go proxy(":2001", "localhost:5672", &wg)(done)
+	go proxy(":45672", "localhost:5672", &wg)(done)
 	for !sess.IsConnected() {
 
 	}
