@@ -6,7 +6,7 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     services:
-      postgres:
+      mq:
         image: rabbitmq:3-management
         env:
           RABBITMQ_DEFAULT_USER: "guest"
@@ -16,6 +16,11 @@ jobs:
           - 5672:5672
           - 15672:15672
         options: '--health-cmd "rabbitmqctl status" --health-interval 10s --health-timeout 10s --health-retries 6 --health-start-period 60s'
+      proxy:
+        image: shopify/toxiproxy
+        ports:
+          - 8474:8474
+          - 35672:35672
    
     steps:
 
@@ -25,11 +30,8 @@ jobs:
         go-version: 1.13
       id: go
 
-    - name: Check out code into the Go module directory
+    - name: Check out code into th Go module directory
       uses: actions/checkout@v2
-
-    - name: net stat
-      run: netstat -an | grep "LISTEN "
 
     - name: Deps
       run: go get -v -t -d ./...

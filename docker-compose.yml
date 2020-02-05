@@ -15,6 +15,14 @@ services:
         networks:
             - ingress
 
+    proxy:
+        image: shopify/toxiproxy
+        ports:
+            - 8474:8474
+            - 35672:35672
+        networks:
+            - ingress
+
 networks: 
     ingress:
         driver: bridge
