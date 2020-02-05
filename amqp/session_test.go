@@ -50,7 +50,7 @@ func (s *SessionIntegrationSuite) TestNewSessionWithProxy() {
 	defer s.rabbit.Disable()
 
 	sess, err := NewSession(
-		SetDsn("amqp://guest:guest@docker:35672"),
+		SetDsn("amqp://guest:guest@localhost:35672"),
 	)
 
 	assert.NoError(err)
