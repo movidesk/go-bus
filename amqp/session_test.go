@@ -2,6 +2,7 @@ package amqp
 
 import (
 	"testing"
+	"time"
 
 	toxi "github.com/shopify/toxiproxy/client"
 	"github.com/stretchr/testify/assert"
@@ -58,8 +59,7 @@ func (s *SessionIntegrationSuite) TestNewSessionWithProxy() {
 	assert.True(sess.IsConnected())
 
 	s.rabbit.Disable()
-	for sess.IsConnected() {
-	}
+	waitToBeTrue(func() bool { return !sess.IsConnected() }, time.Second)
 
 	assert.False(sess.IsConnected())
 }
@@ -78,18 +78,29 @@ func (s *SessionIntegrationSuite) TestReconnectionOnNetworkFailure() {
 	assert.True(sess.IsConnected())
 
 	s.rabbit.Disable()
-	for sess.IsConnected() {
-	}
+	waitToBeTrue(func() bool { return !sess.IsConnected() }, time.Second)
 
 	assert.False(sess.IsConnected())
 
 	s.rabbit.Enable()
-	for !sess.IsConnected() {
-	}
+	waitToBeTrue(func() bool { return sess.IsConnected() }, time.Second)
 
 	assert.True(sess.IsConnected())
 }
 
 func TestSessionIntegrationSuite(t *testing.T) {
 	suite.Run(t, new(SessionIntegrationSuite))
+}
+
+func waitToBeTrue(check func() bool, d time.Duration) {
+	end := time.Now().Add(d)
+	for {
+		if check() {
+			return
+		}
+
+		if end.Before(time.Now()) {
+			return
+		}
+	}
 }
