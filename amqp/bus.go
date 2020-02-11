@@ -5,17 +5,13 @@ import (
 )
 
 type bus struct {
-	_    struct{}
-	sess *session
+	_       struct{}
+	pubconn *Connection
+	subconn *Connection
 }
 
 func NewBus(fns ...OptionsFn) (base.Bus, error) {
-	sess, err := NewSession(fns...)
-	if err != nil {
-		return nil, err
-	}
-
-	return &bus{sess: sess}, nil
+	return &bus{}, nil
 }
 
 func (b *bus) NewPublisher() (base.Publisher, error) {

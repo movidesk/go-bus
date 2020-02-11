@@ -16,13 +16,14 @@ func main() {
 	go proxy(":25672", "localhost:5672")(done)
 
 	sess, err := amqp.NewSession(
-		amqp.SetDsn("amqp://admin:admin@localhost:25672"),
+		nil,
+		//amqp.SetDsn("amqp://admin:admin@localhost:25672"),
 	)
 	if err != nil {
 		log.Fatal("amqp.NewSession")
 	}
 
-	for !sess.IsConnected() {
+	for sess.IsClosed() {
 		time.Sleep(time.Second)
 		log.Println("not connected!")
 	}
@@ -31,19 +32,19 @@ func main() {
 	done <- struct{}{}
 	log.Println("proxy disconnect")
 
-	for sess.IsConnected() {
+	for !sess.IsClosed() {
 		time.Sleep(time.Second)
 		log.Println("connected!")
 	}
 
 	go proxy(":25672", "localhost:5672")(done)
 
-	for !sess.IsConnected() {
+	for sess.IsClosed() {
 		time.Sleep(time.Second)
 		log.Println("not connected!")
 	}
 
-	for sess.IsConnected() {
+	for !sess.IsClosed() {
 		time.Sleep(time.Second)
 		log.Println("connected!")
 	}
