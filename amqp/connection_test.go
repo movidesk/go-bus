@@ -135,6 +135,8 @@ func (s *ConnectionIntegrationSuite) TestConnectionWaitGroupOnConnectionClose() 
 
 	assert.NoError(err)
 	assert.NotNil(conn)
+
+	waitToBeTrue(func() bool { return !conn.IsClosed() }, time.Second)
 	assert.True(!conn.IsClosed())
 
 	assert.True(waitForTimeout(wg.Wait, time.Second))
