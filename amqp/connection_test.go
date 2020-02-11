@@ -129,6 +129,7 @@ func (s *ConnectionIntegrationSuite) TestConnectionWaitGroupOnConnectionClose() 
 	wg := &sync.WaitGroup{}
 	conn, err := NewConnection(
 		SetDSN("amqp://guest:guest@localhost:5672"),
+		SetDelay(time.Millisecond*100),
 		SetWaitGroup(wg),
 	)
 
