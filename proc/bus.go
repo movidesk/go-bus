@@ -60,7 +60,7 @@ func (b *bus) NewSubscriber() (base.Subscriber, error) {
 
 func (b *bus) Close() {
 	b.wg.Done()
-	b.closer <- struct{}{}
+	close(b.closer)
 }
 
 func (b *bus) Wait() {

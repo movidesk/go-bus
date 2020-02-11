@@ -1,8 +1,17 @@
 package amqp
 
 import (
+	"sync"
+
 	base "github.com/movidesk/go-bus"
 )
+
+type SubscriberOptionsFn func(*SubscriberOptions)
+
+type SubscriberOptions struct {
+	done <-chan struct{}
+	wg   *sync.WaitGroup
+}
 
 type Subscriber interface {
 	base.Subscriber
@@ -20,5 +29,4 @@ func (s *sub) Consume() (<-chan base.Message, <-chan struct{}, error) {
 }
 
 func (s *sub) Close() {
-
 }
