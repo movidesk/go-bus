@@ -93,7 +93,7 @@ func (s *ConnectionIntegrationSuite) TestConnectionOnNetworkFailure() {
 	assert.True(conn.IsClosed())
 
 	s.rabbit.Enable()
-	waitToBeTrue(func() bool { return !conn.IsClosed() }, time.Second)
+	waitToBeTrue(func() bool { return !conn.IsClosed() }, time.Second*2)
 	assert.False(conn.IsClosed())
 }
 
