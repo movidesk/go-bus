@@ -5,6 +5,12 @@ import (
 	"sync"
 )
 
+type Bus interface {
+	base.Bus
+	NewPublisher() (base.Publisher, error)
+	NewSubscriber() (base.Subscriber, error)
+}
+
 type bus struct {
 	_   struct{}
 	in  chan<- base.Message
@@ -15,7 +21,7 @@ type bus struct {
 	wg     *sync.WaitGroup
 }
 
-func NewBus(fns ...OptionsFn) (base.Bus, error) {
+func NewBus(fns ...OptionsFn) (Bus, error) {
 	var o Options
 	var wg sync.WaitGroup
 	o.closer = make(chan struct{})
