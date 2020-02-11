@@ -14,7 +14,9 @@ type ChannelOptionsFn func(*ChannelOptions)
 
 type ChannelOptions struct {
 	delay time.Duration
-	wg    *sync.WaitGroup
+
+	wg   *sync.WaitGroup
+	done <-chan struct{}
 }
 
 func SetChannelDelay(delay time.Duration) ChannelOptionsFn {
@@ -26,6 +28,12 @@ func SetChannelDelay(delay time.Duration) ChannelOptionsFn {
 func SetChannelWaitGroup(wg *sync.WaitGroup) ChannelOptionsFn {
 	return func(o *ChannelOptions) {
 		o.wg = wg
+	}
+}
+
+func SetChannelDone(done <-chan struct{}) ChannelOptionsFn {
+	return func(o *ChannelOptions) {
+		o.done = done
 	}
 }
 
@@ -85,28 +93,36 @@ func (c *Channel) channel() error {
 
 func (c *Channel) loop() {
 	defer c.wg.Done()
+	running := true
 
-	for {
-		reason, ok := <-c.Channel.NotifyClose(make(chan *amqp.Error))
-		if !ok {
-			log.Println("channel closed")
-			atomic.StoreInt32(&c.closed, 1)
-			break
-		}
-		log.Printf("channel closed, reason: %v\n", reason)
-		atomic.StoreInt32(&c.closed, 1)
+out:
+	for running {
+		select {
+		case <-c.done:
+			c.Close()
 
-		for {
-			time.Sleep(c.delay)
-
-			err := c.channel()
-			if err == nil {
-				log.Println("channel reconnect success")
-				atomic.StoreInt32(&c.closed, 0)
-				break
+		case reason, ok := <-c.Channel.NotifyClose(make(chan *amqp.Error)):
+			if !ok {
+				log.Println("channel closed")
+				atomic.StoreInt32(&c.closed, 1)
+				running = false
+				break out
 			}
+			log.Printf("channel closed, reason: %v\n", reason)
+			atomic.StoreInt32(&c.closed, 1)
 
-			log.Printf("channel reconnect failed, err: %v\n", err)
+			for {
+				time.Sleep(c.delay)
+
+				err := c.channel()
+				if err == nil {
+					log.Println("channel reconnect success")
+					atomic.StoreInt32(&c.closed, 0)
+					break
+				}
+
+				log.Printf("channel reconnect failed, err: %v\n", err)
+			}
 		}
 	}
 }

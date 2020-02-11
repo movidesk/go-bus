@@ -142,6 +142,28 @@ func (s *ConnectionIntegrationSuite) TestConnectionWaitGroupOnClose() {
 	assert.False(waitForTimeout(wg.Wait, time.Second))
 }
 
+func (s *ConnectionIntegrationSuite) TestConnectionWaitGroupOnDone() {
+	assert := assert.New(s.T())
+
+	wg := &sync.WaitGroup{}
+	done := make(chan struct{})
+	conn, err := NewConnection(
+		SetConnectionDSN("amqp://guest:guest@localhost:5672"),
+		SetConnectionDelay(time.Millisecond*100),
+		SetConnectionWaitGroup(wg),
+		SetConnectionDone(done),
+	)
+	assert.NoError(err)
+	assert.NotNil(conn)
+
+	waitToBeTrue(func() bool { return !conn.IsClosed() }, time.Second)
+	assert.False(conn.IsClosed())
+
+	assert.True(waitForTimeout(wg.Wait, time.Second))
+	done <- struct{}{}
+	assert.False(waitForTimeout(wg.Wait, time.Second))
+}
+
 func TestConnectionIntegrationSuite(t *testing.T) {
 	suite.Run(t, new(ConnectionIntegrationSuite))
 }

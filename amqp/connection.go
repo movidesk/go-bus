@@ -15,7 +15,8 @@ type ConnectionOptions struct {
 	dsn   string
 	delay time.Duration
 
-	wg *sync.WaitGroup
+	wg   *sync.WaitGroup
+	done <-chan struct{}
 }
 
 func SetConnectionDSN(dsn string) ConnectionOptionsFn {
@@ -33,6 +34,12 @@ func SetConnectionDelay(delay time.Duration) ConnectionOptionsFn {
 func SetConnectionWaitGroup(wg *sync.WaitGroup) ConnectionOptionsFn {
 	return func(o *ConnectionOptions) {
 		o.wg = wg
+	}
+}
+
+func SetConnectionDone(done <-chan struct{}) ConnectionOptionsFn {
+	return func(o *ConnectionOptions) {
+		o.done = done
 	}
 }
 
@@ -77,25 +84,33 @@ func (c *Connection) dial() error {
 
 func (c *Connection) loop() {
 	defer c.wg.Done()
+	running := true
 
-	for {
-		reason, ok := <-c.Connection.NotifyClose(make(chan *amqp.Error))
-		if !ok {
-			log.Println("connection closed")
-			break
-		}
-		log.Printf("connection closed, reason: %v\n", reason)
+out:
+	for running {
+		select {
+		case <-c.done:
+			c.Close()
 
-		for {
-			time.Sleep(c.delay)
-
-			err := c.dial()
-			if err == nil {
-				log.Println("reconnect success")
-				break
+		case reason, ok := <-c.Connection.NotifyClose(make(chan *amqp.Error)):
+			if !ok {
+				log.Println("connection closed")
+				running = false
+				break out
 			}
+			log.Printf("connection closed, reason: %v\n", reason)
 
-			log.Printf("reconnect failed, err: %v\n", err)
+			for {
+				time.Sleep(c.delay)
+
+				err := c.dial()
+				if err == nil {
+					log.Println("reconnect success")
+					break
+				}
+
+				log.Printf("reconnect failed, err: %v\n", err)
+			}
 		}
 	}
 }

@@ -128,6 +128,30 @@ func (s *ChannelIntegrationSuite) TestChannelWaitGroupOnClose() {
 	assert.False(waitForTimeout(wg.Wait, time.Second))
 }
 
+func (s *ChannelIntegrationSuite) TestChannelWaitGroupOnDone() {
+	assert := assert.New(s.T())
+
+	conn, err := NewConnection()
+	assert.NoError(err)
+	assert.NotNil(conn)
+
+	wg := &sync.WaitGroup{}
+	done := make(chan struct{})
+	chnn, err := NewChannel(conn,
+		SetChannelWaitGroup(wg),
+		SetChannelDone(done),
+	)
+	assert.NoError(err)
+	assert.NotNil(wg)
+
+	waitToBeTrue(func() bool { return !chnn.IsClosed() }, time.Second)
+	assert.False(chnn.IsClosed())
+
+	assert.True(waitForTimeout(wg.Wait, time.Second))
+	done <- struct{}{}
+	assert.False(waitForTimeout(wg.Wait, time.Second))
+}
+
 func TestChannelIntegrationSuite(t *testing.T) {
 	suite.Run(t, new(ChannelIntegrationSuite))
 }
