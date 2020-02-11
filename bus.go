@@ -1,9 +1,6 @@
 package bus
 
 type Bus interface {
-	NewPublisher() (Publisher, error)
-	NewSubscriber() (Subscriber, error)
-
 	Wait()
 	Close()
 }

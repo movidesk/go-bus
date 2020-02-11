@@ -4,10 +4,14 @@ import (
 	base "github.com/movidesk/go-bus"
 )
 
+type Subscriber interface {
+	base.Subscriber
+}
+
 type sub struct {
 }
 
-func NewSubscriber() (base.Subscriber, error) {
+func NewSubscriber() (Subscriber, error) {
 	return &sub{}, nil
 }
 

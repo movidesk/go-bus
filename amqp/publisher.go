@@ -4,10 +4,13 @@ import (
 	base "github.com/movidesk/go-bus"
 )
 
+type Publisher interface {
+	base.Publisher
+}
 type pub struct {
 }
 
-func NewPublisher() (base.Publisher, error) {
+func NewPublisher() (Publisher, error) {
 	return &pub{}, nil
 }
 

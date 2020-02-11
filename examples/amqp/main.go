@@ -1,81 +1,65 @@
 package main
 
 import (
-	"fmt"
-	"io"
 	"log"
-	"net"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
+	base "github.com/movidesk/go-bus"
 	"github.com/movidesk/go-bus/amqp"
 )
 
 func main() {
-	done := make(chan struct{})
-
-	go proxy(":25672", "localhost:5672")(done)
-
-	sess, err := amqp.NewSession(
-		nil,
-		//amqp.SetDsn("amqp://admin:admin@localhost:25672"),
-	)
+	bus, err := amqp.NewBus()
 	if err != nil {
-		log.Fatal("amqp.NewSession")
+		log.Panic(err)
 	}
 
-	for sess.IsClosed() {
-		time.Sleep(time.Second)
-		log.Println("not connected!")
+	pub, err := bus.NewPublisher()
+	if err != nil {
+		log.Panic(err)
 	}
+	go publish(pub)
 
-	time.Sleep(time.Second * 10)
-	done <- struct{}{}
-	log.Println("proxy disconnect")
-
-	for !sess.IsClosed() {
-		time.Sleep(time.Second)
-		log.Println("connected!")
+	sub, err := bus.NewSubscriber()
+	if err != nil {
+		log.Panic(err)
 	}
+	go subscribe(sub)
 
-	go proxy(":25672", "localhost:5672")(done)
+	close := make(chan os.Signal)
+	signal.Notify(close, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	<-close
+	bus.Close()
+	bus.Wait()
+}
 
-	for sess.IsClosed() {
-		time.Sleep(time.Second)
-		log.Println("not connected!")
-	}
-
-	for !sess.IsClosed() {
-		time.Sleep(time.Second)
-		log.Println("connected!")
+func publish(pub amqp.Publisher) {
+	for {
+		time.Sleep(time.Second * 1)
+		err, ok := pub.Publish(base.Message{})
+		if err != nil {
+			break
+		}
+		if ok {
+			log.Println("publish confirmed")
+		}
 	}
 }
 
-func proxy(from, to string) func(<-chan struct{}) {
-	return func(done <-chan struct{}) {
-		incoming, err := net.Listen("tcp", from)
-		if err != nil {
-			log.Fatalf("could not start server on %s: %v", from, err)
+func subscribe(sub amqp.Subscriber) {
+	msgs, done, err := sub.Consume()
+	if err != nil {
+		return
+	}
+	for {
+		select {
+		case <-done:
+			break
+		case msg := <-msgs:
+			log.Printf("%+v", msg)
 		}
-		defer incoming.Close()
-		fmt.Printf("server running on %s\n", from)
-
-		client, err := incoming.Accept()
-		if err != nil {
-			log.Fatal("could not accept client connection", err)
-		}
-		defer client.Close()
-		fmt.Printf("client '%v' connected!\n", client.RemoteAddr())
-
-		target, err := net.Dial("tcp", to)
-		if err != nil {
-			log.Fatal("could not connect to target", err)
-		}
-		defer target.Close()
-		fmt.Printf("connection to server %v established!\n", target.RemoteAddr())
-
-		go func() { io.Copy(target, client) }()
-		go func() { io.Copy(client, target) }()
-
-		<-done
 	}
 }
