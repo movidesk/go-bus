@@ -60,6 +60,7 @@ func NewConnection(fns ...ConnOptionsFn) (*Connection, error) {
 		return nil, err
 	}
 
+	conn.wg.Add(1)
 	go conn.loop()
 
 	return conn, nil
@@ -75,7 +76,6 @@ func (c *Connection) dial() error {
 }
 
 func (c *Connection) loop() {
-	c.wg.Add(1)
 	defer c.wg.Done()
 
 	for {
