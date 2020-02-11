@@ -89,9 +89,8 @@ func (c *Connection) loop() {
 		for {
 			time.Sleep(c.delay)
 
-			conn, err := amqp.Dial(c.dsn)
+			err := c.dial()
 			if err == nil {
-				c.Connection = conn
 				log.Println("reconnect success")
 				break
 			}
