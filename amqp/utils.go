@@ -14,3 +14,17 @@ func waitToBeTrue(check func() bool, d time.Duration) {
 		}
 	}
 }
+
+func waitForTimeout(fn func(), d time.Duration) bool {
+	c := make(chan struct{})
+	go func() {
+		defer close(c)
+		fn()
+	}()
+	select {
+	case <-c:
+		return false
+	case <-time.After(d):
+		return true
+	}
+}

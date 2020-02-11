@@ -1,6 +1,7 @@
 package amqp
 
 import (
+	"sync"
 	"testing"
 	"time"
 
@@ -29,6 +30,15 @@ func (s *ConnectionIntegrationSuite) TestNewConnection() {
 	conn, err := NewConnection(
 		SetDSN("amqp://guest:guest@localhost:5672"),
 	)
+
+	assert.NoError(err)
+	assert.NotNil(conn)
+}
+
+func (s *ConnectionIntegrationSuite) TestNewConnectionWithoutConfiguration() {
+	assert := assert.New(s.T())
+
+	conn, err := NewConnection()
 
 	assert.NoError(err)
 	assert.NotNil(conn)
@@ -72,6 +82,7 @@ func (s *ConnectionIntegrationSuite) TestConnectionOnNetworkFailure() {
 
 	conn, err := NewConnection(
 		SetDSN("amqp://guest:guest@localhost:35672"),
+		SetDelay(time.Millisecond*100),
 	)
 
 	assert.NoError(err)
@@ -111,6 +122,24 @@ func (s *ConnectionIntegrationSuite) TestConnectionOnNetworkFailureWithDelay() {
 
 	waitToBeTrue(func() bool { return !conn.IsClosed() }, time.Second*2)
 	assert.False(conn.IsClosed())
+}
+
+func (s *ConnectionIntegrationSuite) TestConnectionWaitGroupOnConnectionClose() {
+	assert := assert.New(s.T())
+
+	wg := &sync.WaitGroup{}
+	conn, err := NewConnection(
+		SetDSN("amqp://guest:guest@localhost:5672"),
+		SetWaitGroup(wg),
+	)
+
+	assert.NoError(err)
+	assert.NotNil(conn)
+	assert.True(!conn.IsClosed())
+
+	assert.True(waitForTimeout(wg.Wait, time.Second*1))
+	conn.Close()
+	assert.False(waitForTimeout(wg.Wait, time.Second*1))
 }
 
 func TestConnectionIntegrationSuite(t *testing.T) {

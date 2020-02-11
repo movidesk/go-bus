@@ -2,6 +2,7 @@ package amqp
 
 import (
 	"log"
+	"sync"
 	"time"
 
 	"github.com/pkg/errors"
@@ -13,6 +14,8 @@ type ConnOptionsFn func(*ConnOptions)
 type ConnOptions struct {
 	dsn   string
 	delay time.Duration
+
+	wg *sync.WaitGroup
 }
 
 func SetDSN(dsn string) ConnOptionsFn {
@@ -27,19 +30,29 @@ func SetDelay(delay time.Duration) ConnOptionsFn {
 	}
 }
 
+func SetWaitGroup(wg *sync.WaitGroup) ConnOptionsFn {
+	return func(o *ConnOptions) {
+		o.wg = wg
+	}
+}
+
 type Connection struct {
 	*amqp.Connection
 	*ConnOptions
 }
 
 func NewConnection(fns ...ConnOptionsFn) (*Connection, error) {
-	var o ConnOptions
+	o := &ConnOptions{
+		wg:    &sync.WaitGroup{},
+		dsn:   "amqp://guest:guest@localhost:5672",
+		delay: time.Second,
+	}
 	for _, fn := range fns {
-		fn(&o)
+		fn(o)
 	}
 
 	conn := &Connection{
-		ConnOptions: &o,
+		ConnOptions: o,
 	}
 
 	err := conn.dial()
@@ -62,6 +75,9 @@ func (c *Connection) dial() error {
 }
 
 func (c *Connection) loop() {
+	c.wg.Add(1)
+	defer c.wg.Done()
+
 	for {
 		reason, ok := <-c.Connection.NotifyClose(make(chan *amqp.Error))
 		if !ok {
