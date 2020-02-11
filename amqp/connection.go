@@ -9,40 +9,40 @@ import (
 	"github.com/streadway/amqp"
 )
 
-type ConnOptionsFn func(*ConnOptions)
+type ConnectionOptionsFn func(*ConnectionOptions)
 
-type ConnOptions struct {
+type ConnectionOptions struct {
 	dsn   string
 	delay time.Duration
 
 	wg *sync.WaitGroup
 }
 
-func SetDSN(dsn string) ConnOptionsFn {
-	return func(o *ConnOptions) {
+func SetConnectionDSN(dsn string) ConnectionOptionsFn {
+	return func(o *ConnectionOptions) {
 		o.dsn = dsn
 	}
 }
 
-func SetDelay(delay time.Duration) ConnOptionsFn {
-	return func(o *ConnOptions) {
+func SetConnectionDelay(delay time.Duration) ConnectionOptionsFn {
+	return func(o *ConnectionOptions) {
 		o.delay = delay
 	}
 }
 
-func SetWaitGroup(wg *sync.WaitGroup) ConnOptionsFn {
-	return func(o *ConnOptions) {
+func SetConnectionWaitGroup(wg *sync.WaitGroup) ConnectionOptionsFn {
+	return func(o *ConnectionOptions) {
 		o.wg = wg
 	}
 }
 
 type Connection struct {
 	*amqp.Connection
-	*ConnOptions
+	*ConnectionOptions
 }
 
-func NewConnection(fns ...ConnOptionsFn) (*Connection, error) {
-	o := &ConnOptions{
+func NewConnection(fns ...ConnectionOptionsFn) (*Connection, error) {
+	o := &ConnectionOptions{
 		wg:    &sync.WaitGroup{},
 		dsn:   "amqp://guest:guest@localhost:5672",
 		delay: time.Second,
@@ -52,7 +52,7 @@ func NewConnection(fns ...ConnOptionsFn) (*Connection, error) {
 	}
 
 	conn := &Connection{
-		ConnOptions: o,
+		ConnectionOptions: o,
 	}
 
 	err := conn.dial()

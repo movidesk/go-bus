@@ -28,7 +28,7 @@ func (s *SessionIntegrationSuite) TestNewSession() {
 	assert := assert.New(s.T())
 
 	conn, err := NewConnection(
-		SetDSN("amqp://guest:guest@localhost:5672"),
+		SetConnectionDSN("amqp://guest:guest@localhost:5672"),
 	)
 	assert.NoError(err)
 	assert.NotNil(conn)
@@ -43,7 +43,7 @@ func (s *SessionIntegrationSuite) TestSessionWaitGroupOnClose() {
 
 	wg := &sync.WaitGroup{}
 	conn, err := NewConnection(
-		SetWaitGroup(wg),
+		SetConnectionWaitGroup(wg),
 	)
 	assert.NoError(err)
 	assert.NotNil(conn)

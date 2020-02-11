@@ -28,7 +28,7 @@ func (s *ConnectionIntegrationSuite) TestNewConnection() {
 	assert := assert.New(s.T())
 
 	conn, err := NewConnection(
-		SetDSN("amqp://guest:guest@localhost:5672"),
+		SetConnectionDSN("amqp://guest:guest@localhost:5672"),
 	)
 
 	assert.NoError(err)
@@ -48,7 +48,7 @@ func (s *ConnectionIntegrationSuite) TestNewConnectionWithInvalidDSN() {
 	assert := assert.New(s.T())
 
 	conn, err := NewConnection(
-		SetDSN("amqp://guest:guest@invalid:5672"),
+		SetConnectionDSN("amqp://guest:guest@invalid:5672"),
 	)
 
 	assert.Error(err, ConnectionError)
@@ -61,7 +61,7 @@ func (s *ConnectionIntegrationSuite) TestNewConnectionWithProxy() {
 	defer s.rabbit.Disable()
 
 	conn, err := NewConnection(
-		SetDSN("amqp://guest:guest@localhost:35672"),
+		SetConnectionDSN("amqp://guest:guest@localhost:35672"),
 	)
 	assert.NoError(err)
 	assert.NotNil(conn)
@@ -79,7 +79,7 @@ func (s *ConnectionIntegrationSuite) TestConnectionOnNetworkFailure() {
 	defer s.rabbit.Disable()
 
 	conn, err := NewConnection(
-		SetDSN("amqp://guest:guest@localhost:35672"),
+		SetConnectionDSN("amqp://guest:guest@localhost:35672"),
 	)
 
 	assert.NoError(err)
@@ -101,8 +101,8 @@ func (s *ConnectionIntegrationSuite) TestConnectionOnNetworkFailureWithDelay() {
 	defer s.rabbit.Disable()
 
 	conn, err := NewConnection(
-		SetDSN("amqp://guest:guest@localhost:35672"),
-		SetDelay(time.Second*2),
+		SetConnectionDSN("amqp://guest:guest@localhost:35672"),
+		SetConnectionDelay(time.Second*2),
 	)
 
 	assert.NoError(err)
@@ -126,9 +126,9 @@ func (s *ConnectionIntegrationSuite) TestConnectionWaitGroupOnClose() {
 
 	wg := &sync.WaitGroup{}
 	conn, err := NewConnection(
-		SetDSN("amqp://guest:guest@localhost:5672"),
-		SetDelay(time.Millisecond*100),
-		SetWaitGroup(wg),
+		SetConnectionDSN("amqp://guest:guest@localhost:5672"),
+		SetConnectionDelay(time.Millisecond*100),
+		SetConnectionWaitGroup(wg),
 	)
 
 	assert.NoError(err)

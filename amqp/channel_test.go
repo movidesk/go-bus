@@ -28,7 +28,7 @@ func (s *ChannelIntegrationSuite) TestNewChannel() {
 	assert := assert.New(s.T())
 
 	conn, err := NewConnection(
-		SetDSN("amqp://guest:guest@localhost:5672"),
+		SetConnectionDSN("amqp://guest:guest@localhost:5672"),
 	)
 	assert.NoError(err)
 	assert.NotNil(conn)
@@ -56,8 +56,8 @@ func (s *ChannelIntegrationSuite) TestNewChannelWithProxy() {
 	defer s.rabbit.Disable()
 
 	conn, err := NewConnection(
-		SetDSN("amqp://guest:guest@localhost:35672"),
-		SetDelay(time.Second*2),
+		SetConnectionDSN("amqp://guest:guest@localhost:35672"),
+		SetConnectionDelay(time.Second*2),
 	)
 	assert.NoError(err)
 	assert.NotNil(conn)
@@ -85,7 +85,7 @@ func (s *ChannelIntegrationSuite) TestChannelOnNetworkFailure() {
 	defer s.rabbit.Disable()
 
 	conn, err := NewConnection(
-		SetDSN("amqp://guest:guest@localhost:35672"),
+		SetConnectionDSN("amqp://guest:guest@localhost:35672"),
 	)
 	assert.NoError(err)
 	assert.NotNil(conn)
