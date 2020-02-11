@@ -3,5 +3,5 @@ package amqp
 import "errors"
 
 var (
-	ConnectionError = errors.New("Unable to connect on amqp broker")
+	ConnectionError = errors.New("Unable to connect to amqp broker")
 )
