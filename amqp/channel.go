@@ -70,9 +70,7 @@ func (c *Channel) Close() error {
 	if c.IsClosed() {
 		return amqp.ErrClosed
 	}
-
 	atomic.StoreInt32(&c.closed, 1)
-
 	return c.Channel.Close()
 }
 
@@ -92,6 +90,7 @@ func (c *Channel) loop() {
 		reason, ok := <-c.Channel.NotifyClose(make(chan *amqp.Error))
 		if !ok {
 			log.Println("channel closed")
+			atomic.StoreInt32(&c.closed, 1)
 			break
 		}
 		log.Printf("channel closed, reason: %v\n", reason)
