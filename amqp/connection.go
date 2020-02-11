@@ -43,9 +43,8 @@ type Connection struct {
 
 func NewConnection(fns ...ConnOptionsFn) (*Connection, error) {
 	o := &ConnOptions{
-		wg:    &sync.WaitGroup{},
-		dsn:   "amqp://guest:guest@localhost:5672",
-		delay: time.Second,
+		wg:  &sync.WaitGroup{},
+		dsn: "amqp://guest:guest@localhost:5672",
 	}
 	for _, fn := range fns {
 		fn(o)

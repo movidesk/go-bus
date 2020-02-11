@@ -82,7 +82,6 @@ func (s *ConnectionIntegrationSuite) TestConnectionOnNetworkFailure() {
 
 	conn, err := NewConnection(
 		SetDSN("amqp://guest:guest@localhost:35672"),
-		SetDelay(time.Millisecond*100),
 	)
 
 	assert.NoError(err)
