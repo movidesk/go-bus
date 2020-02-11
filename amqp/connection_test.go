@@ -63,8 +63,6 @@ func (s *ConnectionIntegrationSuite) TestNewConnectionWithProxy() {
 	conn, err := NewConnection(
 		SetDSN("amqp://guest:guest@localhost:35672"),
 	)
-	conn.IsClosed()
-
 	assert.NoError(err)
 	assert.NotNil(conn)
 	assert.False(conn.IsClosed())
@@ -123,7 +121,7 @@ func (s *ConnectionIntegrationSuite) TestConnectionOnNetworkFailureWithDelay() {
 	assert.False(conn.IsClosed())
 }
 
-func (s *ConnectionIntegrationSuite) TestConnectionWaitGroupOnConnectionClose() {
+func (s *ConnectionIntegrationSuite) TestConnectionWaitGroupOnClose() {
 	assert := assert.New(s.T())
 
 	wg := &sync.WaitGroup{}
