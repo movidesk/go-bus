@@ -62,6 +62,33 @@ func (s *SessionIntegrationSuite) TestSessionWaitGroupOnClose() {
 	assert.False(waitForTimeout(wg.Wait, time.Second))
 }
 
+func (s *SessionIntegrationSuite) TestSessionWaitGroupOnDone() {
+	assert := assert.New(s.T())
+
+	wg := &sync.WaitGroup{}
+	done := make(chan struct{})
+	conn, err := NewConnection(
+		SetConnectionWaitGroup(wg),
+		SetConnectionDone(done),
+	)
+	assert.NoError(err)
+	assert.NotNil(conn)
+
+	sess, err := NewSession(conn,
+		SetChannelWaitGroup(wg),
+		SetChannelDone(done),
+	)
+	assert.NoError(err)
+	assert.NotNil(sess)
+
+	waitToBeTrue(func() bool { return !sess.IsClosed() }, time.Second)
+	assert.False(sess.IsClosed())
+
+	assert.True(waitForTimeout(wg.Wait, time.Second))
+	done <- struct{}{}
+	assert.False(waitForTimeout(wg.Wait, time.Second))
+}
+
 func TestSessionIntegrationSuite(t *testing.T) {
 	suite.Run(t, new(SessionIntegrationSuite))
 }
