@@ -65,11 +65,11 @@ func (b *bus) NewSubscriber(fns ...SubscriberOptionsFn) (base.Subscriber, error)
 	if err := b.connectSub(); err != nil {
 		return nil, err
 	}
-	_, err := NewSession(b.subconn)
+	sess, err := NewSession(b.subconn)
 	if err != nil {
 		return nil, err
 	}
-	return NewSubscriber()
+	return NewSubscriber(sess)
 }
 
 func (b *bus) Close() {

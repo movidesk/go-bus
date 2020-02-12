@@ -5,8 +5,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
-
-	base "github.com/movidesk/go-bus"
 )
 
 type PublisherIntegrationSuite struct {
@@ -34,7 +32,7 @@ func (s *PublisherIntegrationSuite) TestPublishWithConfirmOnUnexistentExchange()
 		SetPublisherExchange("unexistent"),
 	)
 
-	err, ok := pub.Publish(base.Message{})
+	err, ok := pub.Publish(&Message{})
 	assert.NoError(err)
 	assert.False(ok)
 }
@@ -49,7 +47,7 @@ func (s *PublisherIntegrationSuite) TestPublishWithConfirmOnExistentExchange() {
 		SetPublisherExchange("amq.topic"),
 	)
 
-	err, ok := pub.Publish(base.Message{})
+	err, ok := pub.Publish(&Message{})
 	assert.NoError(err)
 	assert.True(ok)
 }
@@ -65,7 +63,10 @@ func (s *PublisherIntegrationSuite) TestPublishWithoutConfirmOnUnexistentExchang
 		SetPublisherExchange("unexistent"),
 	)
 
-	err, ok := pub.Publish(base.Message{})
+	msg := &Message{
+		Body: []byte("banana"),
+	}
+	err, ok := pub.Publish(msg)
 	assert.NoError(err)
 	assert.False(ok)
 }
@@ -81,7 +82,7 @@ func (s *PublisherIntegrationSuite) TestPublishWithoutConfirmOnExistentExchange(
 		SetPublisherExchange("amq.topic"),
 	)
 
-	err, ok := pub.Publish(base.Message{})
+	err, ok := pub.Publish(&Message{})
 	assert.NoError(err)
 	assert.False(ok)
 }
@@ -96,18 +97,15 @@ func (s *PublisherIntegrationSuite) TestPublishWithHeaderAndBody() {
 		SetPublisherExchange("amq.topic"),
 	)
 
-	type Fruit struct {
-		Name string `json:"name"`
-	}
-
-	err, ok := pub.Publish(base.Message{
-		Header: base.Header{
-			"key-string": "value",
+	msg := &Message{
+		Headers: map[string]interface{}{
+			"key-string": "string",
 			"key-int":    1,
 			"key-bool":   true,
 		},
-		Body: &Fruit{"Banana"},
-	})
+		Body: []byte("banana"),
+	}
+	err, ok := pub.Publish(msg)
 	assert.NoError(err)
 	assert.True(ok)
 }

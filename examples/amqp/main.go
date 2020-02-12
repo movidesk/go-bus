@@ -7,7 +7,6 @@ import (
 	"syscall"
 	"time"
 
-	base "github.com/movidesk/go-bus"
 	"github.com/movidesk/go-bus/amqp"
 )
 
@@ -39,7 +38,7 @@ func main() {
 func publish(pub amqp.Publisher) {
 	for {
 		time.Sleep(time.Second * 1)
-		err, ok := pub.Publish(base.Message{})
+		err, ok := pub.Publish(&amqp.Message{})
 		if err != nil {
 			break
 		}

@@ -15,11 +15,13 @@ type Subscriber interface {
 	Close()
 }
 
-type Meta map[string]interface{}
-type Header map[string]interface{}
-type Body interface{}
-type Message struct {
-	Meta   Meta
-	Header Header
-	Body   Body
+type Message interface {
+	Ack(multiple bool)
+	Nack(multiple bool, requeue bool)
+	Reject(requeue bool)
+
+	GetHeaders() map[string]interface{}
+	SetHeaders(map[string]interface{})
+	GetBody() []byte
+	SetBody([]byte)
 }

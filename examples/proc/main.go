@@ -61,7 +61,8 @@ func main() {
 	go func() {
 		for {
 			time.Sleep(time.Second)
-			err, ok := pub.Publish(base.Message{})
+			msg := &proc.Message{}
+			err, ok := pub.Publish(msg)
 			if err != nil {
 				log.Fatal("unable to publish message")
 			}

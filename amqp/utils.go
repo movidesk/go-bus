@@ -1,6 +1,11 @@
 package amqp
 
-import "time"
+import (
+	"log"
+	"time"
+
+	"github.com/streadway/amqp"
+)
 
 func waitToBeTrue(check func() bool, d time.Duration) {
 	end := time.Now().Add(d)
@@ -26,5 +31,29 @@ func waitForTimeout(fn func(), d time.Duration) bool {
 		return false
 	case <-time.After(d):
 		return true
+	}
+}
+
+func declareTopic(dsn, exchange, queue string) {
+	conn, err := amqp.Dial(dsn)
+	if err != nil {
+		log.Fatalf("cannot (re)dial: %v: %q", err, dsn)
+	}
+
+	ch, err := conn.Channel()
+	if err != nil {
+		log.Fatalf("cannot create channel: %v", err)
+	}
+
+	if err := ch.ExchangeDeclare(exchange, "topic", false, true, false, false, nil); err != nil {
+		log.Fatalf("cannot declare fanout exchange: %v", err)
+	}
+
+	if _, err := ch.QueueDeclare(queue, true, false, false, false, nil); err != nil {
+		log.Fatalf("cannot declare queue: %v", err)
+	}
+
+	if err := ch.QueueBind(queue, "", exchange, false, nil); err != nil {
+		log.Fatalf("cannot bind: %v", err)
 	}
 }

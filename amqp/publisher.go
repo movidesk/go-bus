@@ -137,14 +137,10 @@ func (p *pub) setup() error {
 }
 
 func parse(msg base.Message) (amqp.Publishing, error) {
-	body, err := json.Marshal(msg.Body)
-	if err != nil {
-		return amqp.Publishing{}, errors.Wrap(err, "Could not json.Marshal the message body")
-	}
-
-	headers := amqp.Table(msg.Header)
+	body := msg.GetBody()
+	bb, err := json.Marshal(body)
 	return amqp.Publishing{
-		Body:    body,
-		Headers: headers,
-	}, nil
+		Body:    bb,
+		Headers: msg.GetHeaders(),
+	}, err
 }
