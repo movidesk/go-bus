@@ -44,36 +44,53 @@ func NewBus(fns ...BusOptionsFn) (Bus, error) {
 }
 
 func (b *bus) NewPublisher(fns ...PublisherOptionsFn) (base.Publisher, error) {
-	o := &PublisherOptions{}
-	SetPublisherClose(b.close)(o)
-	SetPublisherWaitGroup(b.wg)(o)
-	for _, fn := range fns {
-		fn(o)
-	}
+	fns = append(
+		fns,
+		SetPublisherClose(b.close),
+		SetPublisherWaitGroup(b.wg),
+	)
 
 	if err := b.connectPub(); err != nil {
 		return nil, err
 	}
-	sess, err := NewSession(b.pubconn)
+
+	sess, err := NewSession(
+		b.pubconn,
+		SetChannelDone(b.close),
+		SetChannelWaitGroup(b.wg),
+	)
 	if err != nil {
 		return nil, err
 	}
-	return NewPublisher(sess)
+
+	return NewPublisher(sess, fns...)
 }
 
 func (b *bus) NewSubscriber(fns ...SubscriberOptionsFn) (base.Subscriber, error) {
+	fns = append(
+		fns,
+		SetSubscriberClose(b.close),
+		SetSubscriberWaitGroup(b.wg),
+	)
+
 	if err := b.connectSub(); err != nil {
 		return nil, err
 	}
-	sess, err := NewSession(b.subconn)
+
+	sess, err := NewSession(
+		b.subconn,
+		SetChannelDone(b.close),
+		SetChannelWaitGroup(b.wg),
+	)
 	if err != nil {
 		return nil, err
 	}
-	return NewSubscriber(sess)
+
+	return NewSubscriber(sess, fns...)
 }
 
 func (b *bus) Close() {
-	b.close <- struct{}{}
+	close(b.close)
 }
 
 func (b *bus) Wait() {
@@ -82,7 +99,10 @@ func (b *bus) Wait() {
 
 func (b *bus) connectPub() error {
 	if b.pubconn == nil || b.pubconn.IsClosed() {
-		conn, err := NewConnection()
+		conn, err := NewConnection(
+			SetConnectionDone(b.close),
+			SetConnectionWaitGroup(b.wg),
+		)
 		if err != nil {
 			return err
 		}
@@ -93,7 +113,10 @@ func (b *bus) connectPub() error {
 
 func (b *bus) connectSub() error {
 	if b.subconn == nil || b.subconn.IsClosed() {
-		conn, err := NewConnection()
+		conn, err := NewConnection(
+			SetConnectionDone(b.close),
+			SetConnectionWaitGroup(b.wg),
+		)
 		if err != nil {
 			return err
 		}
