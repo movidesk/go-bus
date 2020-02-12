@@ -15,6 +15,9 @@ type ChannelOptionsFn func(*ChannelOptions)
 type ChannelOptions struct {
 	delay time.Duration
 
+	prefetchCount int
+	prefetchSize  int
+
 	wg   *sync.WaitGroup
 	done <-chan struct{}
 }
@@ -22,6 +25,18 @@ type ChannelOptions struct {
 func SetChannelDelay(delay time.Duration) ChannelOptionsFn {
 	return func(o *ChannelOptions) {
 		o.delay = delay
+	}
+}
+
+func SetChannelPrefetchCount(count int) ChannelOptionsFn {
+	return func(o *ChannelOptions) {
+		o.prefetchCount = count
+	}
+}
+
+func SetChannelPrefetchSize(size int) ChannelOptionsFn {
+	return func(o *ChannelOptions) {
+		o.prefetchSize = size
 	}
 }
 
@@ -49,7 +64,8 @@ func NewChannel(conn *Connection, fns ...ChannelOptionsFn) (*Channel, error) {
 		wg:    &sync.WaitGroup{},
 		delay: time.Second,
 	}
-
+	SetChannelPrefetchCount(1)(o)
+	SetChannelPrefetchSize(0)(o)
 	for _, fn := range fns {
 		fn(o)
 	}
@@ -86,6 +102,10 @@ func (c *Channel) channel() error {
 	chnn, err := c.conn.Channel()
 	if err != nil {
 		return errors.Wrap(err, "Could not conn.Channel()")
+	}
+	err = chnn.Qos(c.prefetchCount, c.prefetchSize, false)
+	if err != nil {
+		return err
 	}
 	c.Channel = chnn
 	return nil
