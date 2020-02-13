@@ -55,6 +55,9 @@ func SetChannelDone(done <-chan struct{}) ChannelOptionsFn {
 type Channel struct {
 	*amqp.Channel
 	*ChannelOptions
+
+	reconnected []chan<- bool
+
 	conn   *Connection
 	closed int32
 }
@@ -73,6 +76,7 @@ func NewChannel(conn *Connection, fns ...ChannelOptionsFn) (*Channel, error) {
 	chnn := &Channel{
 		ChannelOptions: o,
 		conn:           conn,
+		reconnected:    make([]chan<- bool, 0),
 	}
 
 	err := chnn.channel()
@@ -84,6 +88,16 @@ func NewChannel(conn *Connection, fns ...ChannelOptionsFn) (*Channel, error) {
 	go chnn.loop()
 
 	return chnn, nil
+}
+
+func (c *Channel) Reconnected(listener chan<- bool) {
+	c.reconnected = append(c.reconnected, listener)
+}
+
+func (c *Channel) notifyReconnection() {
+	for _, r := range c.reconnected {
+		r <- true
+	}
 }
 
 func (c *Channel) IsClosed() bool {
@@ -139,6 +153,7 @@ out:
 				if err == nil {
 					log.Println("channel reconnect success")
 					atomic.StoreInt32(&c.closed, 0)
+					c.notifyReconnection()
 					break
 				}
 

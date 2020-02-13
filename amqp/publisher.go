@@ -84,10 +84,14 @@ type Publisher interface {
 type pub struct {
 	*PublisherOptions
 	*Session
+
+	reconnected chan bool
 }
 
 func NewPublisher(sess *Session, fns ...PublisherOptionsFn) (Publisher, error) {
 	o := &PublisherOptions{}
+	wg := &sync.WaitGroup{}
+	SetPublisherWaitGroup(wg)(o)
 	SetPublisherMandatory(false)(o)
 	SetPublisherImmediate(false)(o)
 	SetPublisherConfirm(true)(o)
@@ -96,10 +100,16 @@ func NewPublisher(sess *Session, fns ...PublisherOptionsFn) (Publisher, error) {
 		fn(o)
 	}
 
+	reconnected := make(chan bool)
+	sess.Reconnected(reconnected)
 	p := &pub{
 		Session:          sess,
 		PublisherOptions: o,
+		reconnected:      reconnected,
 	}
+
+	p.wg.Add(1)
+	go p.loop()
 
 	return p, p.setup()
 }
@@ -143,6 +153,25 @@ func (p *pub) setup() error {
 		p.Session.Channel.NotifyPublish(p.confirmations)
 	}
 	return err
+}
+
+func (p *pub) loop() {
+	defer p.wg.Done()
+
+	running := true
+out:
+	for running {
+		select {
+		case <-p.close:
+			running = false
+			break out
+		case <-p.reconnected:
+			err := p.setup()
+			if err != nil {
+				log.Println(err.Error())
+			}
+		}
+	}
 }
 
 func parse(msg base.Message) (amqp.Publishing, error) {

@@ -36,7 +36,7 @@ type bus struct {
 
 func NewBus(fns ...BusOptionsFn) (Bus, error) {
 	o := &BusOptions{}
-	SetBusDSN("amqp://guest:guest@localhost:5672")
+	SetBusDSN("amqp://guest:guest@localhost:5672")(o)
 	for _, fn := range fns {
 		fn(o)
 	}
