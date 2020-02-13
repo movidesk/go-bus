@@ -107,6 +107,7 @@ func (c *Channel) channel() error {
 	if err != nil {
 		return err
 	}
+
 	c.Channel = chnn
 	return nil
 }

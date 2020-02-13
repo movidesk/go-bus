@@ -110,9 +110,17 @@ func (p *pub) Publish(msg base.Message) (error, bool) {
 		return err, false
 	}
 
-	err = p.Session.Publish(p.exchange, p.key, p.mandatory, p.immediate, pmsg)
+	if p.Session.Channel.IsClosed() {
+		return errors.New("Could not Publish, session channel is closed"), false
+	}
+
+	if p.Session.Connection.IsClosed() {
+		return errors.New("Could not Publish, session connection is closed"), false
+	}
+
+	err = p.Session.Channel.Publish(p.exchange, p.key, p.mandatory, p.immediate, pmsg)
 	if err != nil {
-		return errors.Wrap(err, "Could not Session.Publish()"), false
+		return errors.Wrap(err, "Could not Publish, channel.Publish() failed"), false
 	}
 
 	//TODO: confirmation timeout
@@ -126,12 +134,13 @@ func (p *pub) setup() error {
 		return nil
 	}
 
-	err := p.Confirm(false)
+	err := p.Channel.Confirm(false)
 	if err != nil {
 		log.Printf("publisher confirms not supported")
 		close(p.confirmations)
 	} else {
-		p.NotifyPublish(p.confirmations)
+		log.Printf("publisher confirms enabled")
+		p.Session.Channel.NotifyPublish(p.confirmations)
 	}
 	return err
 }

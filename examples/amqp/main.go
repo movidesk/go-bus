@@ -8,10 +8,17 @@ import (
 	"time"
 
 	"github.com/movidesk/go-bus/amqp"
+	toxi "github.com/shopify/toxiproxy/client"
 )
 
 func main() {
-	bus, err := amqp.NewBus()
+	cli := toxi.NewClient("docker:8474")
+	_, err := cli.Proxy("rabbit")
+	if err != nil {
+		_, err = cli.CreateProxy("rabbit", "docker:35672", "mq:5672")
+	}
+
+	bus, err := amqp.NewBus(amqp.SetBusDSN("amqp://guest:guest@docker:35672"))
 	if err != nil {
 		log.Panic(err)
 	}
@@ -70,10 +77,13 @@ func publish(pub amqp.Publisher, name string, d time.Duration) {
 			},
 		})
 		if err != nil {
-			break
+			log.Printf("%s: %+v", name, err)
+			continue
 		}
 		if ok {
-			log.Printf("%s: publish confirmed by\n", name)
+			log.Printf("%s: publish confirmed\n", name)
+		} else {
+			log.Printf("%s: publish not confirmed\n", name)
 		}
 	}
 }

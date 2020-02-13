@@ -35,11 +35,17 @@ type bus struct {
 }
 
 func NewBus(fns ...BusOptionsFn) (Bus, error) {
+	o := &BusOptions{}
+	SetBusDSN("amqp://guest:guest@localhost:5672")
+	for _, fn := range fns {
+		fn(o)
+	}
 	wg := &sync.WaitGroup{}
 	close := make(chan struct{})
 	return &bus{
-		wg:    wg,
-		close: close,
+		BusOptions: o,
+		wg:         wg,
+		close:      close,
 	}, nil
 }
 
@@ -100,6 +106,7 @@ func (b *bus) Wait() {
 func (b *bus) connectPub() error {
 	if b.pubconn == nil || b.pubconn.IsClosed() {
 		conn, err := NewConnection(
+			SetConnectionDSN(b.dsn),
 			SetConnectionDone(b.close),
 			SetConnectionWaitGroup(b.wg),
 		)
@@ -114,6 +121,7 @@ func (b *bus) connectPub() error {
 func (b *bus) connectSub() error {
 	if b.subconn == nil || b.subconn.IsClosed() {
 		conn, err := NewConnection(
+			SetConnectionDSN(b.dsn),
 			SetConnectionDone(b.close),
 			SetConnectionWaitGroup(b.wg),
 		)
