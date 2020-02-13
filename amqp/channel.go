@@ -94,6 +94,41 @@ func (c *Channel) Reconnected(listener chan<- bool) {
 	c.reconnected = append(c.reconnected, listener)
 }
 
+func (c *Channel) Consume(queue, consumer string, autoAck, exclusive, noLocal, noWait bool, args amqp.Table) (<-chan amqp.Delivery, error) {
+	deliveries := make(chan amqp.Delivery)
+
+	c.wg.Add(1)
+	go func() {
+		defer c.wg.Done()
+	out:
+		for {
+			select {
+			case <-c.done:
+				break out
+			default:
+				d, err := c.Channel.Consume(queue, consumer, autoAck, exclusive, noLocal, noWait, args)
+				if err != nil {
+					log.Printf("consume failed, err: %v\n", err)
+					time.Sleep(c.delay)
+					continue
+				}
+
+				for msg := range d {
+					deliveries <- msg
+				}
+
+				time.Sleep(c.delay)
+
+				if c.IsClosed() {
+					break
+				}
+			}
+		}
+	}()
+
+	return deliveries, nil
+}
+
 func (c *Channel) notifyReconnection() {
 	for _, r := range c.reconnected {
 		r <- true

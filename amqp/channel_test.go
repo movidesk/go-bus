@@ -178,7 +178,46 @@ func (s *ChannelIntegrationSuite) TestChannelConsume() {
 
 	waitToBeTrue(func() bool { return !chnn.IsClosed() }, time.Second)
 	assert.False(chnn.IsClosed())
+}
 
+func (s *ChannelIntegrationSuite) TestChannelConsumeOnNetworkFailure() {
+	assert := assert.New(s.T())
+	s.rabbit.Enable()
+	defer s.rabbit.Disable()
+
+	conn, err := NewConnection(
+		SetConnectionDSN("amqp://guest:guest@localhost:35672"),
+	)
+	assert.NoError(err)
+	assert.NotNil(conn)
+	assert.True(!conn.IsClosed())
+
+	chnn, err := NewChannel(conn)
+	assert.NoError(err)
+	assert.NotNil(chnn)
+
+	declareTopic("amqp://guest:guest@localhost:5672", "exchange", "queue")
+
+	err = chnn.Publish("exchange", "", false, false, amqp.Publishing{Body: []byte("body")})
+	assert.NoError(err)
+
+	deliveries, err := chnn.Consume("queue", "", false, false, false, false, nil)
+	assert.NoError(err)
+
+	msg := <-deliveries
+	msg.Nack(false, true)
+	assert.Equal("body", string(msg.Body))
+
+	s.rabbit.Disable()
+	waitToBeTrue(func() bool { return conn.IsClosed() }, time.Second)
+	assert.True(conn.IsClosed())
+	waitToBeTrue(func() bool { return chnn.IsClosed() }, time.Second)
+	assert.True(chnn.IsClosed())
+	s.rabbit.Enable()
+
+	msg = <-deliveries
+	msg.Ack(false)
+	assert.Equal("body", string(msg.Body))
 }
 
 func TestChannelIntegrationSuite(t *testing.T) {
