@@ -36,6 +36,9 @@ jobs:
     - name: Deps
       run: go get -v -t -d ./...
 
+    - name: Vet
+      run: go vet -v ./...
+
     - name: Unit
       run: go test -v -run Unit ./...
       
