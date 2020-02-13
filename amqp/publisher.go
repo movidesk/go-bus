@@ -95,7 +95,6 @@ func NewPublisher(sess *Session, fns ...PublisherOptionsFn) (Publisher, error) {
 	SetPublisherMandatory(false)(o)
 	SetPublisherImmediate(false)(o)
 	SetPublisherConfirm(true)(o)
-	SetPublisherConfirmations(make(chan amqp.Confirmation, 1))(o)
 	for _, fn := range fns {
 		fn(o)
 	}
@@ -108,10 +107,15 @@ func NewPublisher(sess *Session, fns ...PublisherOptionsFn) (Publisher, error) {
 		reconnected:      reconnected,
 	}
 
+	err := p.setup()
+	if err != nil {
+		return p, err
+	}
+
 	p.wg.Add(1)
 	go p.loop()
 
-	return p, p.setup()
+	return p, err
 }
 
 func (p *pub) Publish(msg base.Message) (error, bool) {
@@ -139,6 +143,7 @@ func (p *pub) Publish(msg base.Message) (error, bool) {
 }
 
 func (p *pub) setup() error {
+	p.confirmations = make(chan amqp.Confirmation, 1)
 	if !p.confirm {
 		close(p.confirmations)
 		return nil
@@ -166,6 +171,10 @@ out:
 			running = false
 			break out
 		case <-p.reconnected:
+			if !p.confirm {
+				continue
+			}
+
 			err := p.setup()
 			if err != nil {
 				log.Println(err.Error())
