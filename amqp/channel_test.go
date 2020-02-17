@@ -235,13 +235,14 @@ func (s *ChannelIntegrationSuite) TestChannelConsumeOnNetworkFailure() {
 	msg = <-deliveries
 	// after failure an in flight msg channel/conneciton instance is closed
 	// using msg.Ack should return an error here
-	// err = msg.Ack(false) // channel/connection is not open
+	err = msg.Ack(false)
+	assert.Error(err) // channel/connection is not open
 	// the only way to Ack an in flight message is using the channel Acknowledgement system
 	err = chnn.Ack(msg.DeliveryTag, false)
 	assert.NoError(err)
 	assert.Equal("body 2", string(msg.Body))
 
-	// next message should be ok then
+	// next message should be ok then, but avoiding msg.Ack should be a must
 	msg = <-deliveries
 	err = msg.Ack(false)
 	assert.NoError(err)
