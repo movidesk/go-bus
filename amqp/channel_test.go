@@ -164,7 +164,7 @@ func (s *ChannelIntegrationSuite) TestChannelConsume() {
 	assert.NoError(err)
 	assert.NotNil(chnn)
 
-	declareTopic("amqp://guest:guest@localhost:5672", "exchange", "queue")
+	declareTopic("amqp://guest:guest@localhost:5672", "exchange-a", "queue-a")
 
 	err = chnn.Publish("exchange", "", false, false, amqp.Publishing{Body: []byte("body")})
 	assert.NoError(err)
@@ -192,32 +192,60 @@ func (s *ChannelIntegrationSuite) TestChannelConsumeOnNetworkFailure() {
 	assert.NotNil(conn)
 	assert.True(!conn.IsClosed())
 
-	chnn, err := NewChannel(conn)
+	chnn, err := NewChannel(
+		conn,
+		SetChannelPrefetchCount(2),
+	)
 	assert.NoError(err)
 	assert.NotNil(chnn)
 
-	declareTopic("amqp://guest:guest@localhost:35672", "exchange", "queue")
+	declareTopic("amqp://guest:guest@localhost:5672", "exchange-b", "queue-b")
 
-	err = chnn.Publish("exchange", "", false, false, amqp.Publishing{Body: []byte("body")})
+	err = chnn.Publish("exchange-b", "", false, false, amqp.Publishing{
+		DeliveryMode: amqp.Persistent,
+		Body:         []byte("body 1")},
+	)
+	assert.NoError(err)
+	err = chnn.Publish("exchange-b", "", false, false, amqp.Publishing{
+		DeliveryMode: amqp.Persistent,
+		Body:         []byte("body 2")},
+	)
 	assert.NoError(err)
 
-	deliveries, err := chnn.Consume("queue", "", false, false, false, false, nil)
+	deliveries, err := chnn.Consume("queue-b", "", false, false, false, false, nil)
 	assert.NoError(err)
 
 	msg := <-deliveries
-	msg.Nack(false, true)
-	assert.Equal("body", string(msg.Body))
+	err = msg.Nack(false, true)
+	assert.NoError(err)
+	assert.Equal("body 1", string(msg.Body))
 
 	s.rabbit.Disable()
 	waitToBeTrue(func() bool { return conn.IsClosed() }, time.Second)
 	assert.True(conn.IsClosed())
 	waitToBeTrue(func() bool { return chnn.IsClosed() }, time.Second)
 	assert.True(chnn.IsClosed())
+
 	s.rabbit.Enable()
+	waitToBeTrue(func() bool { return !conn.IsClosed() }, time.Second*2)
+	assert.True(!conn.IsClosed())
+	waitToBeTrue(func() bool { return !chnn.IsClosed() }, time.Second*2)
+	assert.True(!chnn.IsClosed())
 
 	msg = <-deliveries
-	msg.Ack(false)
-	assert.Equal("body", string(msg.Body))
+	// after failure an in flight msg channel/conneciton instance is closed
+	// using msg.Ack should return an error here
+	// err = msg.Ack(false) // channel/connection is not open
+	// the only way to Ack an in flight message is using the channel Acknowledgement system
+	err = chnn.Ack(msg.DeliveryTag, false)
+	assert.NoError(err)
+	assert.Equal("body 2", string(msg.Body))
+
+	// next message should be ok then
+	msg = <-deliveries
+	err = msg.Ack(false)
+	assert.NoError(err)
+	assert.Equal("body 1", string(msg.Body))
 }
 
 func TestChannelIntegrationSuite(t *testing.T) {
