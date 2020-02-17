@@ -196,7 +196,7 @@ func (s *ChannelIntegrationSuite) TestChannelConsumeOnNetworkFailure() {
 	assert.NoError(err)
 	assert.NotNil(chnn)
 
-	declareTopic("amqp://guest:guest@localhost:5672", "exchange", "queue")
+	declareTopic("amqp://guest:guest@localhost:35672", "exchange", "queue")
 
 	err = chnn.Publish("exchange", "", false, false, amqp.Publishing{Body: []byte("body")})
 	assert.NoError(err)
