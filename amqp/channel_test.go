@@ -166,10 +166,10 @@ func (s *ChannelIntegrationSuite) TestChannelConsume() {
 
 	declareTopic("amqp://guest:guest@localhost:5672", "exchange-a", "queue-a")
 
-	err = chnn.Publish("exchange", "", false, false, amqp.Publishing{Body: []byte("body")})
+	err = chnn.Publish("exchange-a", "", false, false, amqp.Publishing{Body: []byte("body")})
 	assert.NoError(err)
 
-	deliveries, err := chnn.Consume("queue", "", false, false, false, false, nil)
+	deliveries, err := chnn.Consume("queue-a", "", false, false, false, false, nil)
 	assert.NoError(err)
 	msg := <-deliveries
 	msg.Ack(false)
