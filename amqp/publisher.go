@@ -1,7 +1,6 @@
 package amqp
 
 import (
-	"encoding/json"
 	"log"
 	"sync"
 
@@ -119,11 +118,6 @@ func NewPublisher(sess *Session, fns ...PublisherOptionsFn) (Publisher, error) {
 }
 
 func (p *pub) Publish(msg base.Message) (error, bool) {
-	pmsg, err := parse(msg)
-	if err != nil {
-		return err, false
-	}
-
 	if p.Session.Channel.IsClosed() {
 		return errors.New("Could not Publish, session channel is closed"), false
 	}
@@ -132,7 +126,11 @@ func (p *pub) Publish(msg base.Message) (error, bool) {
 		return errors.New("Could not Publish, session connection is closed"), false
 	}
 
-	err = p.Session.Channel.Publish(p.exchange, p.key, p.mandatory, p.immediate, pmsg)
+	err := p.Session.Channel.Publish(p.exchange, p.key, p.mandatory, p.immediate,  amqp.Publishing{
+		DeliveryMode: amqp.Persistent,
+		Headers: msg.GetHeaders(),
+		Body: msg.GetBody(),
+	})
 	if err != nil {
 		return errors.Wrap(err, "Could not Publish, channel.Publish() failed"), false
 	}
@@ -183,11 +181,3 @@ out:
 	}
 }
 
-func parse(msg base.Message) (amqp.Publishing, error) {
-	body := msg.GetBody()
-	bb, err := json.Marshal(body)
-	return amqp.Publishing{
-		Body:    bb,
-		Headers: msg.GetHeaders(),
-	}, err
-}

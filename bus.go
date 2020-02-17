@@ -16,9 +16,9 @@ type Subscriber interface {
 }
 
 type Message interface {
-	Ack(multiple bool)
-	Nack(multiple bool, requeue bool)
-	Reject(requeue bool)
+	Ack(multiple bool) error
+	Nack(multiple bool, requeue bool) error
+	Reject(requeue bool) error
 
 	GetHeaders() map[string]interface{}
 	SetHeaders(map[string]interface{})

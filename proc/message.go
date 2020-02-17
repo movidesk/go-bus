@@ -5,13 +5,16 @@ type Message struct {
 	headers map[string]interface{}
 }
 
-func (m *Message) Ack(multiple bool) {
+func (m *Message) Ack(multiple bool) error {
+	return nil
 }
 
-func (m *Message) Nack(multiple bool, requeue bool) {
+func (m *Message) Nack(multiple bool, requeue bool) error {
+	return nil
 }
 
-func (m *Message) Reject(requeue bool) {
+func (m *Message) Reject(requeue bool) error {
+	return nil
 }
 
 func (m *Message) SetHeaders(h map[string]interface{}) {

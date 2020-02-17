@@ -1,6 +1,9 @@
 package amqp
 
-import "github.com/streadway/amqp"
+import (
+	"github.com/pkg/errors"
+	"github.com/streadway/amqp"
+)
 
 type Message struct {
 	*amqp.Delivery
@@ -9,28 +12,28 @@ type Message struct {
 	Body    []byte
 }
 
-func (m *Message) Ack(multiple bool) {
+func (m *Message) Ack(multiple bool) error {
 	if m.Delivery == nil {
-		return
+		return errors.New("Unable to ack message, delivery is not set")
 	}
 
-	m.Delivery.Ack(multiple)
+	return m.Delivery.Ack(multiple)
 }
 
-func (m *Message) Nack(multiple bool, requeue bool) {
+func (m *Message) Nack(multiple bool, requeue bool) error {
 	if m.Delivery == nil {
-		return
+		return errors.New("Unable to nack message, delivery is not set")
 	}
 
-	m.Delivery.Nack(multiple, requeue)
+	return m.Delivery.Nack(multiple, requeue)
 }
 
-func (m *Message) Reject(requeue bool) {
+func (m *Message) Reject(requeue bool) error {
 	if m.Delivery == nil {
-		return
+		return errors.New("Unable to reject message, delivery is not set")
 	}
 
-	m.Delivery.Reject(requeue)
+	return m.Delivery.Reject(requeue)
 }
 
 func (m *Message) GetHeaders() map[string]interface{} {
