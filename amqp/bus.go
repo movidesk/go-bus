@@ -36,6 +36,14 @@ type bus struct {
 	wg    *sync.WaitGroup
 }
 
+func MustBus(fns ...BusOptionsFn) Bus {
+	bus, err := NewBus(fns...)
+	if err != nil {
+		panic(err)
+	}
+	return bus
+}
+
 func NewBus(fns ...BusOptionsFn) (Bus, error) {
 	o := &BusOptions{}
 	SetBusDSN("amqp://guest:guest@localhost:5672")(o)

@@ -28,6 +28,15 @@ func (s *BusIntegrationSuite) TestNewBus() {
 	assert.NotNil(bus)
 }
 
+func (s *BusIntegrationSuite) TestMustBus() {
+	assert := s.Assert()
+
+	assert.NotPanics(func() {
+		bus := MustBus()
+		assert.NotNil(bus)
+	})
+}
+
 func (s *BusIntegrationSuite) TestNewPublisher() {
 	assert := s.Assert()
 
