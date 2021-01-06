@@ -49,6 +49,19 @@ func (s *BusIntegrationSuite) TestNewPublisher() {
 	assert.NotNil(pub)
 }
 
+func (s *BusIntegrationSuite) TestMustPublisher() {
+	assert := s.Assert()
+
+	assert.NotPanics(func() {
+		bus, err := NewBus()
+		assert.NoError(err)
+		assert.NotNil(bus)
+
+		pub := bus.MustPublisher()
+		assert.NotNil(pub)
+	})
+}
+
 func (s *BusIntegrationSuite) TestNewSubscriber() {
 	assert := s.Assert()
 
@@ -59,6 +72,19 @@ func (s *BusIntegrationSuite) TestNewSubscriber() {
 	sub, err := bus.NewSubscriber()
 	assert.NoError(err)
 	assert.NotNil(sub)
+}
+
+func (s *BusIntegrationSuite) TestMustSubscriber() {
+	assert := s.Assert()
+
+	assert.NotPanics(func() {
+		bus, err := NewBus()
+		assert.NoError(err)
+		assert.NotNil(bus)
+
+		sub := bus.MustSubscriber()
+		assert.NotNil(sub)
+	})
 }
 
 func (s *BusIntegrationSuite) TestSubscribeWithAck() {
