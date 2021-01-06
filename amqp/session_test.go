@@ -37,6 +37,21 @@ func (s *SessionIntegrationSuite) TestNewSession() {
 	assert.NotNil(sess)
 }
 
+func (s *SessionIntegrationSuite) TestMustSession() {
+	assert := s.Assert()
+
+	assert.NotPanics(func() {
+		conn, err := NewConnection(
+			SetConnectionDSN("amqp://guest:guest@localhost:5672"),
+		)
+		assert.NoError(err)
+		assert.NotNil(conn)
+
+		sess := MustSession(conn)
+		assert.NotNil(sess)
+	})
+}
+
 func (s *SessionIntegrationSuite) TestSessionWaitGroupOnClose() {
 	assert := s.Assert()
 
