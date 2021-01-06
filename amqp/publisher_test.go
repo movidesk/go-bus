@@ -12,7 +12,7 @@ type PublisherIntegrationSuite struct {
 }
 
 func (s *PublisherIntegrationSuite) TestNewPublisher() {
-	assert := assert.New(s.T())
+	assert := s.Assert()
 
 	conn, _ := NewConnection()
 	sess, _ := NewSession(conn)
@@ -72,7 +72,7 @@ func (s *PublisherIntegrationSuite) TestPublishWithoutConfirmOnUnexistentExchang
 }
 
 func (s *PublisherIntegrationSuite) TestPublishWithoutConfirmOnExistentExchange() {
-	assert := assert.New(s.T())
+	assert := s.Assert()
 
 	conn, _ := NewConnection()
 	sess, _ := NewSession(conn)
@@ -88,7 +88,7 @@ func (s *PublisherIntegrationSuite) TestPublishWithoutConfirmOnExistentExchange(
 }
 
 func (s *PublisherIntegrationSuite) TestPublishWithHeaderAndBody() {
-	assert := assert.New(s.T())
+	assert := s.Assert()
 
 	conn, _ := NewConnection()
 	sess, _ := NewSession(conn)
