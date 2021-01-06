@@ -32,7 +32,6 @@ func (s *SubscriberIntegrationSuite) SetupTest() {
 		rabbit, err = cli.CreateProxy("rabbit", ":35672", "mq:5672")
 	}
 	s.rabbit = rabbit
-
 }
 
 func (s *SubscriberIntegrationSuite) TestNewSubscriber() {
