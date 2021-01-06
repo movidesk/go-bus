@@ -34,6 +34,18 @@ func (s *ConnectionIntegrationSuite) TestNewConnection() {
 	assert.NotNil(conn)
 }
 
+func (s *ConnectionIntegrationSuite) TestMustConnection() {
+	assert := s.Assert()
+
+	assert.NotPanics(func() {
+		conn := MustConnection(
+			SetConnectionDSN("amqp://guest:guest@localhost:5672"),
+		)
+
+		assert.NotNil(conn)
+	})
+}
+
 func (s *ConnectionIntegrationSuite) TestNewConnectionWithoutConfiguration() {
 	assert := s.Assert()
 
