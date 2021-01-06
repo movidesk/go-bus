@@ -34,6 +34,10 @@ func (s *SubscriberIntegrationSuite) SetupTest() {
 	s.rabbit = rabbit
 }
 
+func (s *SubscriberIntegrationSuite) TearDownTest() {
+	deleteTopic("amqp://guest:guest@localhost:5672", s.exchange, s.queue)
+}
+
 func (s *SubscriberIntegrationSuite) TestNewSubscriber() {
 	assert := s.Assert()
 

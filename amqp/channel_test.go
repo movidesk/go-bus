@@ -179,6 +179,7 @@ func (s *ChannelIntegrationSuite) TestChannelConsume() {
 	assert.NotNil(chnn)
 
 	declareTopic("amqp://guest:guest@localhost:5672", "exchange-a", "queue-a")
+	defer deleteTopic("amqp://guest:guest@localhost:5672", "exchange-a", "queue-a")
 
 	err = chnn.Publish("exchange-a", "", false, false, amqp.Publishing{Body: []byte("body")})
 	assert.NoError(err)
@@ -214,6 +215,7 @@ func (s *ChannelIntegrationSuite) TestChannelConsumeOnNetworkFailure() {
 	assert.NotNil(chnn)
 
 	declareTopic("amqp://guest:guest@localhost:5672", "exchange-b", "queue-b")
+	defer deleteTopic("amqp://guest:guest@localhost:5672", "exchange-b", "queue-b")
 
 	err = chnn.Publish("exchange-b", "", false, false, amqp.Publishing{
 		DeliveryMode: amqp.Persistent,

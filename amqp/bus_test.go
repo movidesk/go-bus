@@ -20,6 +20,10 @@ func (s *BusIntegrationSuite) SetupTest() {
 	declareTopic("amqp://guest:guest@localhost:5672", s.exchange, s.queue)
 }
 
+func (s *BusIntegrationSuite) TearDownTest() {
+	deleteTopic("amqp://guest:guest@localhost:5672", s.exchange, s.queue)
+}
+
 func (s *BusIntegrationSuite) TestNewBus() {
 	assert := s.Assert()
 
