@@ -6,6 +6,11 @@ default: help
 vet:
 	@go vet -v .\...
 
+## tidy: cleans up mod dependencies
+.PHONY: tidy 
+tidy:
+	@go mod tidy
+
 ## test: runs all tests
 .PHONY: test
 test: 
