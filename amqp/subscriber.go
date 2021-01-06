@@ -59,6 +59,14 @@ type sub struct {
 	*Session
 }
 
+func MustSubscriber(sess *Session, fns ...SubscriberOptionsFn) Subscriber {
+	sub, err := NewSubscriber(sess, fns...)
+	if err != nil {
+		panic(err)
+	}
+	return sub
+}
+
 func NewSubscriber(sess *Session, fns ...SubscriberOptionsFn) (Subscriber, error) {
 	o := &SubscriberOptions{}
 	SetSubscriberDeliveries(make(chan base.Message, 1))(o)

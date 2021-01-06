@@ -46,6 +46,19 @@ func (s *SubscriberIntegrationSuite) TestNewSubscriber() {
 	assert.NotNil(sub)
 }
 
+func (s *SubscriberIntegrationSuite) TestMustSubscriber() {
+	assert := s.Assert()
+
+	assert.NotPanics(func() {
+		conn, _ := NewConnection()
+		sess, _ := NewSession(conn)
+
+		sub := MustSubscriber(sess)
+
+		assert.NotNil(sub)
+	})
+}
+
 func (s *SubscriberIntegrationSuite) TestConsumeOnClose() {
 	assert := s.Assert()
 
