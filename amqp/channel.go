@@ -62,6 +62,14 @@ type Channel struct {
 	closed int32
 }
 
+func MustChannel(conn *Connection, fns ...ChannelOptionsFn) *Channel {
+	chnn, err := NewChannel(conn, fns...)
+	if err != nil {
+		panic(err)
+	}
+	return chnn
+}
+
 func NewChannel(conn *Connection, fns ...ChannelOptionsFn) (*Channel, error) {
 	o := &ChannelOptions{
 		wg:    &sync.WaitGroup{},

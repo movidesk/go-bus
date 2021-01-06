@@ -7,6 +7,14 @@ type Session struct {
 	*Channel
 }
 
+func MustSession(conn *Connection, fns ...ChannelOptionsFn) *Session {
+	sess, err := NewSession(conn, fns...)
+	if err != nil {
+		panic(err)
+	}
+	return sess
+}
+
 func NewSession(conn *Connection, fns ...ChannelOptionsFn) (*Session, error) {
 	chnn, err := NewChannel(conn, fns...)
 	if err != nil {

@@ -48,6 +48,14 @@ type Connection struct {
 	*ConnectionOptions
 }
 
+func MustConnection(fns ...ConnectionOptionsFn) *Connection {
+	conn, err := NewConnection(fns...)
+	if err != nil {
+		panic(err)
+	}
+	return conn
+}
+
 func NewConnection(fns ...ConnectionOptionsFn) (*Connection, error) {
 	o := &ConnectionOptions{
 		wg:    &sync.WaitGroup{},

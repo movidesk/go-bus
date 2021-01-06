@@ -1,8 +1,9 @@
 package amqp
 
 import (
-	base "github.com/movidesk/go-bus"
 	"sync"
+
+	base "github.com/movidesk/go-bus"
 )
 
 type BusOptionsFn func(*BusOptions)
@@ -21,8 +22,11 @@ type Bus interface {
 	base.Bus
 
 	NewPublisher(fns ...PublisherOptionsFn) (base.Publisher, error)
+	MustPublisher(fns ...PublisherOptionsFn) base.Publisher
 	NewSubscriber(fns ...SubscriberOptionsFn) (base.Subscriber, error)
+	MustSubscriber(fns ...SubscriberOptionsFn) base.Subscriber
 }
+
 type bus struct {
 	_ struct{}
 	*BusOptions
@@ -32,6 +36,14 @@ type bus struct {
 
 	close chan struct{}
 	wg    *sync.WaitGroup
+}
+
+func MustBus(fns ...BusOptionsFn) Bus {
+	bus, err := NewBus(fns...)
+	if err != nil {
+		panic(err)
+	}
+	return bus
 }
 
 func NewBus(fns ...BusOptionsFn) (Bus, error) {
@@ -47,6 +59,26 @@ func NewBus(fns ...BusOptionsFn) (Bus, error) {
 		wg:         wg,
 		close:      close,
 	}, nil
+}
+
+func (b *bus) MustPublisher(fns ...PublisherOptionsFn) base.Publisher {
+	fns = append(
+		fns,
+		SetPublisherClose(b.close),
+		SetPublisherWaitGroup(b.wg),
+	)
+
+	if err := b.connectPub(); err != nil {
+		panic(err)
+	}
+
+	sess := MustSession(
+		b.pubconn,
+		SetChannelDone(b.close),
+		SetChannelWaitGroup(b.wg),
+	)
+
+	return MustPublisher(sess, fns...)
 }
 
 func (b *bus) NewPublisher(fns ...PublisherOptionsFn) (base.Publisher, error) {
@@ -70,6 +102,26 @@ func (b *bus) NewPublisher(fns ...PublisherOptionsFn) (base.Publisher, error) {
 	}
 
 	return NewPublisher(sess, fns...)
+}
+
+func (b *bus) MustSubscriber(fns ...SubscriberOptionsFn) base.Subscriber {
+	fns = append(
+		fns,
+		SetSubscriberClose(b.close),
+		SetSubscriberWaitGroup(b.wg),
+	)
+
+	if err := b.connectSub(); err != nil {
+		panic(err)
+	}
+
+	sess := MustSession(
+		b.subconn,
+		SetChannelDone(b.close),
+		SetChannelWaitGroup(b.wg),
+	)
+
+	return MustSubscriber(sess, fns...)
 }
 
 func (b *bus) NewSubscriber(fns ...SubscriberOptionsFn) (base.Subscriber, error) {

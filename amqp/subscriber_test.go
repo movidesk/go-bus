@@ -6,7 +6,6 @@ import (
 
 	uuid "github.com/satori/go.uuid"
 	toxi "github.com/shopify/toxiproxy/client"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -33,11 +32,14 @@ func (s *SubscriberIntegrationSuite) SetupTest() {
 		rabbit, err = cli.CreateProxy("rabbit", ":35672", "mq:5672")
 	}
 	s.rabbit = rabbit
+}
 
+func (s *SubscriberIntegrationSuite) TearDownTest() {
+	deleteTopic("amqp://guest:guest@localhost:5672", s.exchange, s.queue)
 }
 
 func (s *SubscriberIntegrationSuite) TestNewSubscriber() {
-	assert := assert.New(s.T())
+	assert := s.Assert()
 
 	conn, _ := NewConnection()
 	sess, _ := NewSession(conn)
@@ -48,8 +50,21 @@ func (s *SubscriberIntegrationSuite) TestNewSubscriber() {
 	assert.NotNil(sub)
 }
 
+func (s *SubscriberIntegrationSuite) TestMustSubscriber() {
+	assert := s.Assert()
+
+	assert.NotPanics(func() {
+		conn, _ := NewConnection()
+		sess, _ := NewSession(conn)
+
+		sub := MustSubscriber(sess)
+
+		assert.NotNil(sub)
+	})
+}
+
 func (s *SubscriberIntegrationSuite) TestConsumeOnClose() {
-	assert := assert.New(s.T())
+	assert := s.Assert()
 
 	conn, _ := NewConnection()
 	sess, _ := NewSession(conn)
@@ -83,7 +98,7 @@ out:
 }
 
 func (s *SubscriberIntegrationSuite) TestConsumeOnNetworkFailure() {
-	assert := assert.New(s.T())
+	assert := s.Assert()
 	s.rabbit.Enable()
 	defer s.rabbit.Disable()
 
@@ -149,7 +164,7 @@ func (s *SubscriberIntegrationSuite) TestConsumeOnNetworkFailure() {
 }
 
 func (s *SubscriberIntegrationSuite) TestConsumeOnNetworkFailureWhileMessageIsInFlight() {
-	assert := assert.New(s.T())
+	assert := s.Assert()
 	s.rabbit.Enable()
 	defer s.rabbit.Disable()
 

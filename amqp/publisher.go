@@ -87,6 +87,14 @@ type pub struct {
 	reconnected chan bool
 }
 
+func MustPublisher(sess *Session, fns ...PublisherOptionsFn) Publisher {
+	pub, err := NewPublisher(sess, fns...)
+	if err != nil {
+		panic(err)
+	}
+	return pub
+}
+
 func NewPublisher(sess *Session, fns ...PublisherOptionsFn) (Publisher, error) {
 	o := &PublisherOptions{}
 	wg := &sync.WaitGroup{}
@@ -126,10 +134,10 @@ func (p *pub) Publish(msg base.Message) (error, bool) {
 		return errors.New("Could not Publish, session connection is closed"), false
 	}
 
-	err := p.Session.Channel.Publish(p.exchange, p.key, p.mandatory, p.immediate,  amqp.Publishing{
+	err := p.Session.Channel.Publish(p.exchange, p.key, p.mandatory, p.immediate, amqp.Publishing{
 		DeliveryMode: amqp.Persistent,
-		Headers: msg.GetHeaders(),
-		Body: msg.GetBody(),
+		Headers:      msg.GetHeaders(),
+		Body:         msg.GetBody(),
 	})
 	if err != nil {
 		return errors.Wrap(err, "Could not Publish, channel.Publish() failed"), false
@@ -180,4 +188,3 @@ out:
 		}
 	}
 }
-

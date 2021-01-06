@@ -6,7 +6,6 @@ import (
 	"time"
 
 	toxi "github.com/shopify/toxiproxy/client"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -25,7 +24,7 @@ func (s *SessionIntegrationSuite) SetupTest() {
 }
 
 func (s *SessionIntegrationSuite) TestNewSession() {
-	assert := assert.New(s.T())
+	assert := s.Assert()
 
 	conn, err := NewConnection(
 		SetConnectionDSN("amqp://guest:guest@localhost:5672"),
@@ -38,8 +37,23 @@ func (s *SessionIntegrationSuite) TestNewSession() {
 	assert.NotNil(sess)
 }
 
+func (s *SessionIntegrationSuite) TestMustSession() {
+	assert := s.Assert()
+
+	assert.NotPanics(func() {
+		conn, err := NewConnection(
+			SetConnectionDSN("amqp://guest:guest@localhost:5672"),
+		)
+		assert.NoError(err)
+		assert.NotNil(conn)
+
+		sess := MustSession(conn)
+		assert.NotNil(sess)
+	})
+}
+
 func (s *SessionIntegrationSuite) TestSessionWaitGroupOnClose() {
-	assert := assert.New(s.T())
+	assert := s.Assert()
 
 	wg := &sync.WaitGroup{}
 	conn, err := NewConnection(
@@ -63,7 +77,7 @@ func (s *SessionIntegrationSuite) TestSessionWaitGroupOnClose() {
 }
 
 func (s *SessionIntegrationSuite) TestSessionWaitGroupOnDone() {
-	assert := assert.New(s.T())
+	assert := s.Assert()
 
 	wg := &sync.WaitGroup{}
 	done := make(chan struct{})

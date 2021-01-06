@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	uuid "github.com/satori/go.uuid"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -21,16 +20,29 @@ func (s *BusIntegrationSuite) SetupTest() {
 	declareTopic("amqp://guest:guest@localhost:5672", s.exchange, s.queue)
 }
 
+func (s *BusIntegrationSuite) TearDownTest() {
+	deleteTopic("amqp://guest:guest@localhost:5672", s.exchange, s.queue)
+}
+
 func (s *BusIntegrationSuite) TestNewBus() {
-	assert := assert.New(s.T())
+	assert := s.Assert()
 
 	bus, err := NewBus()
 	assert.NoError(err)
 	assert.NotNil(bus)
 }
 
+func (s *BusIntegrationSuite) TestMustBus() {
+	assert := s.Assert()
+
+	assert.NotPanics(func() {
+		bus := MustBus()
+		assert.NotNil(bus)
+	})
+}
+
 func (s *BusIntegrationSuite) TestNewPublisher() {
-	assert := assert.New(s.T())
+	assert := s.Assert()
 
 	bus, err := NewBus()
 	assert.NoError(err)
@@ -41,8 +53,21 @@ func (s *BusIntegrationSuite) TestNewPublisher() {
 	assert.NotNil(pub)
 }
 
+func (s *BusIntegrationSuite) TestMustPublisher() {
+	assert := s.Assert()
+
+	assert.NotPanics(func() {
+		bus, err := NewBus()
+		assert.NoError(err)
+		assert.NotNil(bus)
+
+		pub := bus.MustPublisher()
+		assert.NotNil(pub)
+	})
+}
+
 func (s *BusIntegrationSuite) TestNewSubscriber() {
-	assert := assert.New(s.T())
+	assert := s.Assert()
 
 	bus, err := NewBus()
 	assert.NoError(err)
@@ -53,8 +78,21 @@ func (s *BusIntegrationSuite) TestNewSubscriber() {
 	assert.NotNil(sub)
 }
 
+func (s *BusIntegrationSuite) TestMustSubscriber() {
+	assert := s.Assert()
+
+	assert.NotPanics(func() {
+		bus, err := NewBus()
+		assert.NoError(err)
+		assert.NotNil(bus)
+
+		sub := bus.MustSubscriber()
+		assert.NotNil(sub)
+	})
+}
+
 func (s *BusIntegrationSuite) TestSubscribeWithAck() {
-	assert := assert.New(s.T())
+	assert := s.Assert()
 
 	bus, err := NewBus()
 	assert.NoError(err)
@@ -93,7 +131,7 @@ out:
 }
 
 func (s *BusIntegrationSuite) TestSubscribeWithNack() {
-	assert := assert.New(s.T())
+	assert := s.Assert()
 
 	bus, err := NewBus()
 	assert.NoError(err)

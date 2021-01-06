@@ -6,7 +6,6 @@ import (
 	"time"
 
 	toxi "github.com/shopify/toxiproxy/client"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -25,7 +24,7 @@ func (s *ConnectionIntegrationSuite) SetupTest() {
 }
 
 func (s *ConnectionIntegrationSuite) TestNewConnection() {
-	assert := assert.New(s.T())
+	assert := s.Assert()
 
 	conn, err := NewConnection(
 		SetConnectionDSN("amqp://guest:guest@localhost:5672"),
@@ -35,8 +34,20 @@ func (s *ConnectionIntegrationSuite) TestNewConnection() {
 	assert.NotNil(conn)
 }
 
+func (s *ConnectionIntegrationSuite) TestMustConnection() {
+	assert := s.Assert()
+
+	assert.NotPanics(func() {
+		conn := MustConnection(
+			SetConnectionDSN("amqp://guest:guest@localhost:5672"),
+		)
+
+		assert.NotNil(conn)
+	})
+}
+
 func (s *ConnectionIntegrationSuite) TestNewConnectionWithoutConfiguration() {
-	assert := assert.New(s.T())
+	assert := s.Assert()
 
 	conn, err := NewConnection()
 
@@ -45,7 +56,7 @@ func (s *ConnectionIntegrationSuite) TestNewConnectionWithoutConfiguration() {
 }
 
 func (s *ConnectionIntegrationSuite) TestNewConnectionWithInvalidDSN() {
-	assert := assert.New(s.T())
+	assert := s.Assert()
 
 	conn, err := NewConnection(
 		SetConnectionDSN("amqp://guest:guest@invalid:5672"),
@@ -56,7 +67,7 @@ func (s *ConnectionIntegrationSuite) TestNewConnectionWithInvalidDSN() {
 }
 
 func (s *ConnectionIntegrationSuite) TestNewConnectionWithProxy() {
-	assert := assert.New(s.T())
+	assert := s.Assert()
 	s.rabbit.Enable()
 	defer s.rabbit.Disable()
 
@@ -74,7 +85,7 @@ func (s *ConnectionIntegrationSuite) TestNewConnectionWithProxy() {
 }
 
 func (s *ConnectionIntegrationSuite) TestConnectionOnNetworkFailure() {
-	assert := assert.New(s.T())
+	assert := s.Assert()
 	s.rabbit.Enable()
 	defer s.rabbit.Disable()
 
@@ -96,7 +107,7 @@ func (s *ConnectionIntegrationSuite) TestConnectionOnNetworkFailure() {
 }
 
 func (s *ConnectionIntegrationSuite) TestConnectionOnNetworkFailureWithDelay() {
-	assert := assert.New(s.T())
+	assert := s.Assert()
 	s.rabbit.Enable()
 	defer s.rabbit.Disable()
 
@@ -122,7 +133,7 @@ func (s *ConnectionIntegrationSuite) TestConnectionOnNetworkFailureWithDelay() {
 }
 
 func (s *ConnectionIntegrationSuite) TestConnectionWaitGroupOnClose() {
-	assert := assert.New(s.T())
+	assert := s.Assert()
 
 	wg := &sync.WaitGroup{}
 	conn, err := NewConnection(
@@ -143,7 +154,7 @@ func (s *ConnectionIntegrationSuite) TestConnectionWaitGroupOnClose() {
 }
 
 func (s *ConnectionIntegrationSuite) TestConnectionWaitGroupOnDone() {
-	assert := assert.New(s.T())
+	assert := s.Assert()
 
 	wg := &sync.WaitGroup{}
 	done := make(chan struct{})
