@@ -7,7 +7,6 @@ import (
 
 	toxi "github.com/shopify/toxiproxy/client"
 	"github.com/streadway/amqp"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -26,7 +25,7 @@ func (s *ChannelIntegrationSuite) SetupTest() {
 }
 
 func (s *ChannelIntegrationSuite) TestNewChannel() {
-	assert := assert.New(s.T())
+	assert := s.Assert()
 
 	conn, err := NewConnection(
 		SetConnectionDSN("amqp://guest:guest@localhost:5672"),
@@ -40,7 +39,7 @@ func (s *ChannelIntegrationSuite) TestNewChannel() {
 }
 
 func (s *ChannelIntegrationSuite) TestNewChannelWithoutConfiguration() {
-	assert := assert.New(s.T())
+	assert := s.Assert()
 
 	conn, err := NewConnection()
 	assert.NoError(err)
@@ -52,7 +51,7 @@ func (s *ChannelIntegrationSuite) TestNewChannelWithoutConfiguration() {
 }
 
 func (s *ChannelIntegrationSuite) TestNewChannelWithProxy() {
-	assert := assert.New(s.T())
+	assert := s.Assert()
 	s.rabbit.Enable()
 	defer s.rabbit.Disable()
 
@@ -81,7 +80,7 @@ func (s *ChannelIntegrationSuite) TestNewChannelWithProxy() {
 }
 
 func (s *ChannelIntegrationSuite) TestChannelOnNetworkFailure() {
-	assert := assert.New(s.T())
+	assert := s.Assert()
 	s.rabbit.Enable()
 	defer s.rabbit.Disable()
 
@@ -110,7 +109,7 @@ func (s *ChannelIntegrationSuite) TestChannelOnNetworkFailure() {
 }
 
 func (s *ChannelIntegrationSuite) TestChannelWaitGroupOnClose() {
-	assert := assert.New(s.T())
+	assert := s.Assert()
 
 	conn, err := NewConnection()
 	assert.NoError(err)
@@ -130,7 +129,7 @@ func (s *ChannelIntegrationSuite) TestChannelWaitGroupOnClose() {
 }
 
 func (s *ChannelIntegrationSuite) TestChannelWaitGroupOnDone() {
-	assert := assert.New(s.T())
+	assert := s.Assert()
 
 	conn, err := NewConnection()
 	assert.NoError(err)
@@ -154,7 +153,7 @@ func (s *ChannelIntegrationSuite) TestChannelWaitGroupOnDone() {
 }
 
 func (s *ChannelIntegrationSuite) TestChannelConsume() {
-	assert := assert.New(s.T())
+	assert := s.Assert()
 
 	conn, err := NewConnection()
 	assert.NoError(err)
@@ -181,7 +180,7 @@ func (s *ChannelIntegrationSuite) TestChannelConsume() {
 }
 
 func (s *ChannelIntegrationSuite) TestChannelConsumeOnNetworkFailure() {
-	assert := assert.New(s.T())
+	assert := s.Assert()
 	s.rabbit.Enable()
 	defer s.rabbit.Disable()
 
