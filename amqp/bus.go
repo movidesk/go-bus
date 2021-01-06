@@ -1,8 +1,9 @@
 package amqp
 
 import (
-	base "github.com/movidesk/go-bus"
 	"sync"
+
+	base "github.com/movidesk/go-bus"
 )
 
 type BusOptionsFn func(*BusOptions)
@@ -23,6 +24,7 @@ type Bus interface {
 	NewPublisher(fns ...PublisherOptionsFn) (base.Publisher, error)
 	NewSubscriber(fns ...SubscriberOptionsFn) (base.Subscriber, error)
 }
+
 type bus struct {
 	_ struct{}
 	*BusOptions

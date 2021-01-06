@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	uuid "github.com/satori/go.uuid"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -22,7 +21,7 @@ func (s *BusIntegrationSuite) SetupTest() {
 }
 
 func (s *BusIntegrationSuite) TestNewBus() {
-	assert := assert.New(s.T())
+	assert := s.Assert()
 
 	bus, err := NewBus()
 	assert.NoError(err)
@@ -30,7 +29,7 @@ func (s *BusIntegrationSuite) TestNewBus() {
 }
 
 func (s *BusIntegrationSuite) TestNewPublisher() {
-	assert := assert.New(s.T())
+	assert := s.Assert()
 
 	bus, err := NewBus()
 	assert.NoError(err)
@@ -42,7 +41,7 @@ func (s *BusIntegrationSuite) TestNewPublisher() {
 }
 
 func (s *BusIntegrationSuite) TestNewSubscriber() {
-	assert := assert.New(s.T())
+	assert := s.Assert()
 
 	bus, err := NewBus()
 	assert.NoError(err)
@@ -54,7 +53,7 @@ func (s *BusIntegrationSuite) TestNewSubscriber() {
 }
 
 func (s *BusIntegrationSuite) TestSubscribeWithAck() {
-	assert := assert.New(s.T())
+	assert := s.Assert()
 
 	bus, err := NewBus()
 	assert.NoError(err)
@@ -93,7 +92,7 @@ out:
 }
 
 func (s *BusIntegrationSuite) TestSubscribeWithNack() {
-	assert := assert.New(s.T())
+	assert := s.Assert()
 
 	bus, err := NewBus()
 	assert.NoError(err)
