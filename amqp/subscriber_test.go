@@ -6,7 +6,6 @@ import (
 
 	uuid "github.com/satori/go.uuid"
 	toxi "github.com/shopify/toxiproxy/client"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -37,7 +36,7 @@ func (s *SubscriberIntegrationSuite) SetupTest() {
 }
 
 func (s *SubscriberIntegrationSuite) TestNewSubscriber() {
-	assert := assert.New(s.T())
+	assert := s.Assert()
 
 	conn, _ := NewConnection()
 	sess, _ := NewSession(conn)
@@ -49,7 +48,7 @@ func (s *SubscriberIntegrationSuite) TestNewSubscriber() {
 }
 
 func (s *SubscriberIntegrationSuite) TestConsumeOnClose() {
-	assert := assert.New(s.T())
+	assert := s.Assert()
 
 	conn, _ := NewConnection()
 	sess, _ := NewSession(conn)
@@ -83,7 +82,7 @@ out:
 }
 
 func (s *SubscriberIntegrationSuite) TestConsumeOnNetworkFailure() {
-	assert := assert.New(s.T())
+	assert := s.Assert()
 	s.rabbit.Enable()
 	defer s.rabbit.Disable()
 
@@ -149,7 +148,7 @@ func (s *SubscriberIntegrationSuite) TestConsumeOnNetworkFailure() {
 }
 
 func (s *SubscriberIntegrationSuite) TestConsumeOnNetworkFailureWhileMessageIsInFlight() {
-	assert := assert.New(s.T())
+	assert := s.Assert()
 	s.rabbit.Enable()
 	defer s.rabbit.Disable()
 
