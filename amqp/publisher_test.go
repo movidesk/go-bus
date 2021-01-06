@@ -22,6 +22,19 @@ func (s *PublisherIntegrationSuite) TestNewPublisher() {
 	assert.NotNil(pub)
 }
 
+func (s *PublisherIntegrationSuite) TestMustPublisher() {
+	assert := s.Assert()
+
+	assert.NotPanics(func() {
+		conn, _ := NewConnection()
+		sess, _ := NewSession(conn)
+
+		pub := MustPublisher(sess)
+
+		assert.NotNil(pub)
+	})
+}
+
 func (s *PublisherIntegrationSuite) TestPublishWithConfirmOnUnexistentExchange() {
 	assert := assert.New(s.T())
 
