@@ -38,6 +38,21 @@ func (s *ChannelIntegrationSuite) TestNewChannel() {
 	assert.NotNil(chnn)
 }
 
+func (s *ChannelIntegrationSuite) TestMustChannel() {
+	assert := s.Assert()
+
+	assert.NotPanics(func() {
+		conn, err := NewConnection(
+			SetConnectionDSN("amqp://guest:guest@localhost:5672"),
+		)
+		assert.NoError(err)
+		assert.NotNil(conn)
+
+		chnn := MustChannel(conn)
+		assert.NotNil(chnn)
+	})
+}
+
 func (s *ChannelIntegrationSuite) TestNewChannelWithoutConfiguration() {
 	assert := s.Assert()
 
