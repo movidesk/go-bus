@@ -1,20 +1,29 @@
 package amqp
 
 import (
+	"context"
 	"sync"
 
 	base "github.com/movidesk/go-bus"
+	"github.com/pkg/errors"
 )
 
 type BusOptionsFn func(*BusOptions)
 
 type BusOptions struct {
 	dsn string
+	wg  *sync.WaitGroup
 }
 
 func SetBusDSN(dsn string) BusOptionsFn {
 	return func(o *BusOptions) {
 		o.dsn = dsn
+	}
+}
+
+func SetBusWaitGroup(wg *sync.WaitGroup) BusOptionsFn {
+	return func(o *BusOptions) {
+		o.wg = wg
 	}
 }
 
@@ -49,14 +58,14 @@ func MustBus(fns ...BusOptionsFn) Bus {
 func NewBus(fns ...BusOptionsFn) (Bus, error) {
 	o := &BusOptions{}
 	SetBusDSN("amqp://guest:guest@localhost:5672")(o)
+	SetBusWaitGroup(&sync.WaitGroup{})(o)
 	for _, fn := range fns {
 		fn(o)
 	}
-	wg := &sync.WaitGroup{}
 	close := make(chan struct{})
 	return &bus{
 		BusOptions: o,
-		wg:         wg,
+		wg:         o.wg,
 		close:      close,
 	}, nil
 }
@@ -153,6 +162,22 @@ func (b *bus) Close() {
 
 func (b *bus) Wait() {
 	b.wg.Wait()
+}
+
+func (b *bus) Shutdown(timeout context.Context) error {
+	b.Close()
+	closed := make(chan struct{})
+	go func() {
+		defer close(closed)
+		b.Wait()
+	}()
+
+	select {
+	case <-timeout.Done():
+		return errors.New("closed by timeout")
+	case <-closed:
+		return nil
+	}
 }
 
 func (b *bus) connectPub() error {

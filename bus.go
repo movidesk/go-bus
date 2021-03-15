@@ -1,8 +1,11 @@
 package bus
 
+import "context"
+
 type Bus interface {
 	Wait()
 	Close()
+	Shutdown(context.Context) error
 }
 
 type Publisher interface {
