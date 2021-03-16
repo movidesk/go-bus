@@ -1,7 +1,10 @@
 package amqp
 
 import (
+	"context"
+	"sync"
 	"testing"
+	"time"
 
 	uuid "github.com/satori/go.uuid"
 	"github.com/stretchr/testify/suite"
@@ -173,6 +176,35 @@ out:
 	}
 
 	assert.Equal(5, counter)
+}
+
+func (s *BusIntegrationSuite) TestShutdownWhenTimedOut() {
+	assert := s.Assert()
+
+	wg := &sync.WaitGroup{}
+	wg.Add(1)
+	bus, _ := NewBus(SetBusWaitGroup(wg))
+	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*10)
+	defer cancel()
+
+	err := bus.Shutdown(ctx)
+
+	assert.Error(err, "closed by timeout")
+}
+
+func (s *BusIntegrationSuite) TestShutdownWhenGraced() {
+	assert := s.Assert()
+
+	wg := &sync.WaitGroup{}
+	wg.Add(1)
+	bus, _ := NewBus(SetBusWaitGroup(wg))
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	wg.Done()
+
+	err := bus.Shutdown(ctx)
+
+	assert.NoError(err)
 }
 
 func TestBusIntegrationSuite(t *testing.T) {
